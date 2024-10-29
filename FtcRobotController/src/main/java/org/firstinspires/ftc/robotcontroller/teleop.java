@@ -15,9 +15,9 @@ import com.qualcomm.robotcore.hardware.Servo;
         public DcMotor BR;
         public DcMotor elevation;
         public DcMotor slide;
-        public Servo claw;
+        public Servo roller;
         public Servo tilt;
-        public Servo launch;
+        // public Servo launch;
 
         final float normalPower = 0.7f;
         final float lowerPower = 0.4f;
@@ -45,8 +45,8 @@ import com.qualcomm.robotcore.hardware.Servo;
             elevation = hardwareMap.get(DcMotor.class, "elevationMotor");
             slide = hardwareMap.get(DcMotor.class, "slideMotor");
             tilt = hardwareMap.get(Servo.class, "tilt");
-            claw = hardwareMap.get(Servo.class,"Claw");
-            launch = hardwareMap.get(Servo.class, "launch");
+            roller = hardwareMap.get(Servo.class,"roller");
+            // launch = hardwareMap.get(Servo.class, "launch");
 
 
             waitForStart();
@@ -161,10 +161,10 @@ import com.qualcomm.robotcore.hardware.Servo;
 
                     // elevation (formerly pitch)
                     if (gamepad1.left_bumper) {
-                        elevation.setPower(1);
+                        elevation.setPower(-1);
                     }
                     else if (gamepad1.right_bumper) {
-                        elevation.setPower(-.5);
+                        elevation.setPower(1);
                     }
                     else {
                         elevation.setPower(0);
@@ -178,29 +178,29 @@ import com.qualcomm.robotcore.hardware.Servo;
                     else if (gamepad1.dpad_down) {
                         slide.setPower(1);
                     }
-                    else if (gamepad1.b) {
-                        slide.setPower(-0.3);
-                    }else {
+                    else {
                         slide.setPower(0);
                     }
-                    // claw
+
+                    // roller
                     if (gamepad1.a) {
-                        claw.setPosition(0.6);
+                        roller.setPosition(0.6);
                     }
                     else {
-                        claw.setPosition(1);
+                        roller.setPosition(1);
                     }
+
                     // tilt
                     if (gamepad1.dpad_left) {
-                        tilt.setPosition(0.8);
+                        tilt.setPosition(-8);
                     }
                     else if (gamepad1.dpad_right) {
-                        tilt.setPosition(9);
+                        tilt.setPosition(8.5);
                     }
-                    //launch drone
+                    /*launch drone
                     if (gamepad1.y) {
                         launch.setPosition(200);
-                    }
+                    } */
                     //set engine to power in hanging
                     if (gamepad1.x) {
 
