@@ -2,6 +2,7 @@ package org.firstinspires.ftc.robotcontroller;
 
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
@@ -15,7 +16,7 @@ import com.qualcomm.robotcore.hardware.Servo;
         public DcMotor BR;
         public DcMotor elevation;
         public DcMotor slide;
-        public Servo roller;
+        public CRServo roller;
         public Servo tilt;
         // public Servo launch;
 
@@ -45,7 +46,7 @@ import com.qualcomm.robotcore.hardware.Servo;
             elevation = hardwareMap.get(DcMotor.class, "elevationMotor");
             slide = hardwareMap.get(DcMotor.class, "slideMotor");
             tilt = hardwareMap.get(Servo.class, "tilt");
-            roller = hardwareMap.get(Servo.class,"roller");
+            roller = hardwareMap.get(CRServo.class,"roller");
             // launch = hardwareMap.get(Servo.class, "launch");
 
 
@@ -184,10 +185,10 @@ import com.qualcomm.robotcore.hardware.Servo;
 
                     // roller
                     if (gamepad1.a) {
-                        roller.setPosition(0.6);
+                        roller.setPower(255);
                     }
                     else {
-                        roller.setPosition(1);
+                        roller.setPower(0);
                     }
 
                     // tilt
