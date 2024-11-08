@@ -164,7 +164,7 @@ public class teleop extends LinearOpMode {
 
                 // elevation (formerly pitch)
                 if (gamepad1.left_bumper) {
-                    tilt.setPosition(0.5);
+                    tilt.setPosition(0.4);
                     sleep(500);
                     elevation.setPower(-1);
                 }
@@ -219,17 +219,6 @@ public class teleop extends LinearOpMode {
                 else {
                     dump.setPosition(0.4);
                 }
-                    /*launch drone
-                    if (gamepad1.y) {
-                        launch.setPosition(200);
-                    } */
-                /*set engine to power in hanging
-                if (gamepad1.x) {
-
-                    slide.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-                    elevation.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-
-                }*/
 
                 FL.setPower(driveSpeed * (turn_FL_X + strafe_FL_X + strafe_FL_Y));
                 FR.setPower(driveSpeed * (turn_FR_X + strafe_FR_X + strafe_FR_Y));
