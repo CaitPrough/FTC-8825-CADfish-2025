@@ -50,6 +50,7 @@ public class teleop extends LinearOpMode {
         roller = hardwareMap.get(CRServo.class,"roller");
         dump = hardwareMap.get(Servo.class, "dump");
         // launch = hardwareMap.get(Servo.class, "launch");
+        elevation.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
 
         waitForStart();
@@ -69,18 +70,18 @@ public class teleop extends LinearOpMode {
                 telemetry.update();
                 //lower power for more precise robot movement
                 if (gamepad1.x) {
-                    if (gamepad1.left_stick_y > 0.1) {
+                    if (gamepad1.right_stick_y > 0.1) {
                         // forward
-                        strafe_BR_Y = gamepad1.left_stick_y * lowerPower;
-                        strafe_FL_Y = gamepad1.left_stick_y * lowerPower;
-                        strafe_FR_Y = gamepad1.left_stick_y * lowerPower;
-                        strafe_BL_Y = gamepad1.left_stick_y * lowerPower;
-                    } else if (gamepad1.left_stick_y < -0.1) {
+                        strafe_BR_Y = gamepad1.right_stick_y * lowerPower;
+                        strafe_FL_Y = gamepad1.right_stick_y * lowerPower;
+                        strafe_FR_Y = gamepad1.right_stick_y * lowerPower;
+                        strafe_BL_Y = gamepad1.right_stick_y * lowerPower;
+                    } else if (gamepad1.right_stick_y < -0.1) {
                         // backward
-                        strafe_BR_Y = gamepad1.left_stick_y * lowerPower;
-                        strafe_FL_Y = gamepad1.left_stick_y * lowerPower;
-                        strafe_FR_Y = gamepad1.left_stick_y * lowerPower;
-                        strafe_BL_Y = gamepad1.left_stick_y * lowerPower;
+                        strafe_BR_Y = gamepad1.right_stick_y * lowerPower;
+                        strafe_FL_Y = gamepad1.right_stick_y * lowerPower;
+                        strafe_FR_Y = gamepad1.right_stick_y * lowerPower;
+                        strafe_BL_Y = gamepad1.right_stick_y * lowerPower;
                     } else if (gamepad1.left_stick_x > 0.1) {
                         // left turn
                         turn_FL_X = -gamepad1.left_stick_x * lowerPower;
@@ -105,18 +106,18 @@ public class teleop extends LinearOpMode {
 
                     }
                 } else {
-                    if (gamepad1.left_stick_y > 0.1) {
+                    if (gamepad1.right_stick_y > 0.1) {
                         // forward
-                        strafe_BR_Y = gamepad1.left_stick_y * normalPower;
-                        strafe_FL_Y = gamepad1.left_stick_y * normalPower;
-                        strafe_FR_Y = gamepad1.left_stick_y * normalPower;
-                        strafe_BL_Y = gamepad1.left_stick_y * normalPower;
-                    } else if (gamepad1.left_stick_y < -0.1) {
+                        strafe_BR_Y = gamepad1.right_stick_y * normalPower;
+                        strafe_FL_Y = gamepad1.right_stick_y * normalPower;
+                        strafe_FR_Y = gamepad1.right_stick_y * normalPower;
+                        strafe_BL_Y = gamepad1.right_stick_y * normalPower;
+                    } else if (gamepad1.right_stick_y < -0.1) {
                         // backward
-                        strafe_BR_Y = gamepad1.left_stick_y * normalPower;
-                        strafe_FL_Y = gamepad1.left_stick_y * normalPower;
-                        strafe_FR_Y = gamepad1.left_stick_y * normalPower;
-                        strafe_BL_Y = gamepad1.left_stick_y * normalPower;
+                        strafe_BR_Y = gamepad1.right_stick_y * normalPower;
+                        strafe_FL_Y = gamepad1.right_stick_y * normalPower;
+                        strafe_FR_Y = gamepad1.right_stick_y * normalPower;
+                        strafe_BL_Y = gamepad1.right_stick_y * normalPower;
                     } else if (gamepad1.left_stick_x > 0.1) {
                         // left turn
                         turn_FL_X = -gamepad1.left_stick_x * normalPower;
@@ -141,20 +142,19 @@ public class teleop extends LinearOpMode {
 
                     }
                 }
-                // turn
-                if (gamepad1.right_stick_y > 0.1) {
+                // strafe
+                if (gamepad1.right_stick_x < -0.1) {
                     // right strafe
-                    strafe_FL_X = gamepad1.right_stick_y;
-                    strafe_FR_X = -gamepad1.right_stick_y;
-                    strafe_BL_X = -gamepad1.right_stick_y;
-                    strafe_BR_X = gamepad1.right_stick_y;
-                } else if (gamepad1.right_stick_y < -0.1) {
+                    strafe_FL_X = -gamepad1.right_stick_x;
+                    strafe_FR_X = gamepad1.right_stick_x;
+                    strafe_BL_X = gamepad1.right_stick_x;
+                    strafe_BR_X = -gamepad1.right_stick_x;
+                } else if (gamepad1.right_stick_x > 0.1) {
                     // left strafe
-                    strafe_FL_X = gamepad1.right_stick_y;
-                    strafe_FR_X = -gamepad1.right_stick_y;
-                    strafe_BL_X = -gamepad1.right_stick_y;
-                    strafe_BR_X = gamepad1.right_stick_y;
-
+                    strafe_FL_X = -gamepad1.right_stick_x;
+                    strafe_FR_X = gamepad1.right_stick_x;
+                    strafe_BL_X = gamepad1.right_stick_x;
+                    strafe_BR_X = -gamepad1.right_stick_x;
                 } else {
                     strafe_FL_X = 0;
                     strafe_FR_X = 0;
@@ -164,15 +164,28 @@ public class teleop extends LinearOpMode {
 
                 // elevation (formerly pitch)
                 if (gamepad1.left_bumper) {
-                    tilt.setPosition(0.4);
-                    sleep(500);
-                    elevation.setPower(-1);
-                }
-                else if (gamepad1.right_bumper) {
+
+                    elevation.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
                     elevation.setPower(1);
+
+                }
+
+                else if (gamepad1.right_bumper) {
+                    if (tilt.getPosition() != 0.4){
+                        tilt.setPosition(0.4);
+                        sleep(50);
+                    }
+                    elevation.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+                    elevation.setPower(-1);
+
                 }
                 else {
                     elevation.setPower(0);
+                    // elevation.getCurrentPosition();
+                    elevation.setTargetPosition(elevation.getCurrentPosition());
+                    elevation.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                    elevation.setPower(1.0);
+
                 }
 
 
@@ -189,7 +202,7 @@ public class teleop extends LinearOpMode {
 
                 // roller
                 if (gamepad1.a) {
-                    roller.setPower(255);
+                    roller.setPower(1000);
                 }
                 else {
                     roller.setPower(0);
@@ -208,7 +221,7 @@ public class teleop extends LinearOpMode {
                     tilt.setPosition(-8);
                 }
                 else if (gamepad1.dpad_right) {
-                    tilt.setPosition(0.9);
+                    tilt.setPosition(0.85);
                 }
 
 
