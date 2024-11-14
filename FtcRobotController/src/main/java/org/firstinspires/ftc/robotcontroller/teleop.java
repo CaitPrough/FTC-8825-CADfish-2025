@@ -41,6 +41,7 @@ public class teleop extends LinearOpMode {
         float strafe_BR_Y = 0;
         double driveSpeed = 1.0;
         int evelation_hold_pos;
+        boolean elevation_locked = false;
 
         FL = hardwareMap.get(DcMotor.class, "leftfront");
         BL = hardwareMap.get(DcMotor.class, "leftback");
@@ -173,6 +174,7 @@ public class teleop extends LinearOpMode {
 
                     elevation.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
                     elevation.setPower(1);
+                    elevation_locked = false;
                 }
 
                 else if (gamepad1.right_bumper) {
@@ -182,6 +184,7 @@ public class teleop extends LinearOpMode {
                     }
                     elevation.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
                     evelation_hold_pos = elevation.getCurrentPosition();
+                    elevation_locked = true;
 
                    // elevation.setMode(DcMotor.RunMode.RUN_TO_POSITION);
                    // elevation.setTargetPosition(elevation.getCurrentPosition());
@@ -191,10 +194,10 @@ public class teleop extends LinearOpMode {
 
                 }
                 else {
-                 //   elevation.setPower(0);
-                    // elevation.getCurrentPosition();
-                    elevation.setTargetPosition(evelation_hold_pos);
-                    elevation.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                    if (elevation_locked == true) {
+                        elevation.setTargetPosition(evelation_hold_pos);
+                        elevation.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                    }
 
                     elevation.setPower(-1.0);
 
