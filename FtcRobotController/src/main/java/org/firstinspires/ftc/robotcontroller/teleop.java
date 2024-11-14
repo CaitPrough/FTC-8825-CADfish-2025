@@ -167,7 +167,6 @@ public class teleop extends LinearOpMode {
 
                     elevation.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
                     elevation.setPower(1);
-
                 }
 
                 else if (gamepad1.right_bumper) {
