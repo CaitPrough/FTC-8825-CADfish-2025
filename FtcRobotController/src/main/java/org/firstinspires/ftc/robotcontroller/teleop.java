@@ -20,7 +20,7 @@ public class teleop extends LinearOpMode {
     public Servo tilt;
     public Servo dump;
     // public Servo launch;
-    public int evelation_hold_pos;
+
 
     final float normalPower = 0.7f;
     final float lowerPower = 0.4f;
@@ -40,6 +40,7 @@ public class teleop extends LinearOpMode {
         float strafe_BL_Y = 0;
         float strafe_BR_Y = 0;
         double driveSpeed = 1.0;
+        int evelation_hold_pos;
 
         FL = hardwareMap.get(DcMotor.class, "leftfront");
         BL = hardwareMap.get(DcMotor.class, "leftback");
@@ -64,6 +65,9 @@ public class teleop extends LinearOpMode {
             FR.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
             BL.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
             BR.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+
+            evelation_hold_pos = elevation.getCurrentPosition(); // bad code lol
+
             while (opModeIsActive()) {
                 telemetry.addData("leftstickX", gamepad1.left_stick_x);
                 telemetry.addData("leftstickY", gamepad1.left_stick_y);
@@ -177,6 +181,7 @@ public class teleop extends LinearOpMode {
                         sleep(50);
                     }
                     elevation.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+                    evelation_hold_pos = elevation.getCurrentPosition();
 
                    // elevation.setMode(DcMotor.RunMode.RUN_TO_POSITION);
                    // elevation.setTargetPosition(elevation.getCurrentPosition());
@@ -186,14 +191,15 @@ public class teleop extends LinearOpMode {
 
                 }
                 else {
-                    elevation.setPower(0);
+                 //   elevation.setPower(0);
                     // elevation.getCurrentPosition();
-                    elevation.setTargetPosition(elevation.getCurrentPosition());
                     elevation.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                    elevation.setPower(1.0);
-                    elevation.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                    elevation.setTargetPosition(elevation.getCurrentPosition());
-                    evelation_hold_pos = elevation.getCurrentPosition();
+                    elevation.setTargetPosition(evelation_hold_pos);
+                    elevation.setPower(-1.0);
+
+
+                 //   elevation.setTargetPosition(elevation.getCurrentPosition());
+                 //   evelation_hold_pos = elevation.getCurrentPosition();
                  //   elevation.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
                 }
