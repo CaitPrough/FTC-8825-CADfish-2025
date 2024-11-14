@@ -20,6 +20,7 @@ public class teleop extends LinearOpMode {
     public Servo tilt;
     public Servo dump;
     // public Servo launch;
+    public int evelation_hold_pos;
 
     final float normalPower = 0.7f;
     final float lowerPower = 0.4f;
@@ -70,6 +71,7 @@ public class teleop extends LinearOpMode {
                 telemetry.update();
                 //lower power for more precise robot movement
                 if (gamepad1.x) {
+
                     if (gamepad1.right_stick_y > 0.1) {
                         // forward
                         strafe_BR_Y = gamepad1.right_stick_y * lowerPower;
@@ -176,8 +178,9 @@ public class teleop extends LinearOpMode {
                     }
                     elevation.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
-                    elevation.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                    elevation.setTargetPosition(elevation.getCurrentPosition());
+                   // elevation.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                   // elevation.setTargetPosition(elevation.getCurrentPosition());
+                //    evelation_hold_pos = elevation.getCurrentPosition();
                   //  elevation.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
                     elevation.setPower(-1);
 
@@ -188,6 +191,7 @@ public class teleop extends LinearOpMode {
                     elevation.setTargetPosition(elevation.getCurrentPosition());
                     elevation.setMode(DcMotor.RunMode.RUN_TO_POSITION);
                     elevation.setPower(1.0);
+                    elevation.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
                 }
 
@@ -235,6 +239,9 @@ public class teleop extends LinearOpMode {
                 else {
                     dump.setPosition(0.4);
                 }
+
+
+
 
                 FL.setPower(driveSpeed * (turn_FL_X + strafe_FL_X + strafe_FL_Y));
                 FR.setPower(driveSpeed * (turn_FR_X + strafe_FR_X + strafe_FR_Y));
