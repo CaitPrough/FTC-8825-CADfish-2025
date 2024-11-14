@@ -197,15 +197,12 @@ public class teleop extends LinearOpMode {
                     if (elevation_locked == true) {
                         elevation.setTargetPosition(evelation_hold_pos);
                         elevation.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                        elevation.setPower(-1.0);
                     }
-
-                    elevation.setPower(-1.0);
-
 
                  //   elevation.setTargetPosition(elevation.getCurrentPosition());
                  //   evelation_hold_pos = elevation.getCurrentPosition();
                  //   elevation.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-
                 }
 
 
