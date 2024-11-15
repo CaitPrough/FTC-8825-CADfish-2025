@@ -7,7 +7,7 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.DigitalChannel;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.util.ElapsedTime;
-
+import com.qualcomm.robotcore.hardware.TouchSensor;
 public class HardwareMapPage {
     /* local OpMode members. */
     HardwareMap hwMap = null;
@@ -18,7 +18,7 @@ public class HardwareMapPage {
     public DcMotor BL;
     public DcMotor BR;
     public BNO055IMU imu;
-    public DigitalChannel button; // Add the button
+    public TouchSensor button; // Add the button
 
     public static final double MID_SERVO = 0.5;
     public static final double ARM_UP_POWER = 0.45;
@@ -60,8 +60,9 @@ public class HardwareMapPage {
         imu = hwMap.get(BNO055IMU.class, "imu");
         imu.initialize(parameters);
 
-        button = hwMap.get(DigitalChannel.class, "slide_button");
-        button.setMode(DigitalChannel.Mode.INPUT);
+       // button = hwMap.get(TouchSensor.class, "button");
+
+
     }
 
     // Set power to all motors
@@ -74,10 +75,5 @@ public class HardwareMapPage {
         BL.setPower(BackLeft);
         BR.setPower(BackRight);
         FR.setPower(FrontRight);
-    }
-
-    // Method to check button state
-    public boolean isButtonPressed() {
-        return !button.getState(); // Assumes the button is active-low (pressed = false)
     }
 }

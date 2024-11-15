@@ -6,12 +6,11 @@ import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
-import com.qualcomm.robotcore.hardware.DigitalChannel;
+import com.qualcomm.robotcore.hardware.TouchSensor;
 
 @TeleOp(name = "teleop")
 public class teleop extends LinearOpMode {
-
-    private DigitalChannel slide_button;
+    TouchSensor button;
     public DcMotor FL;
     public DcMotor BL;
     public DcMotor FR;
@@ -45,6 +44,12 @@ public class teleop extends LinearOpMode {
         int evelation_hold_pos;
         boolean elevation_locked = false;
         long lock_start_time = System.currentTimeMillis();
+        boolean buttonHitRecently = false;
+        long buttonHitTime = 0;
+        int HOLD_DURATION = 500;
+        double HOLDING_POWER = 0.2;
+        boolean isPositionSet = false;
+        long positionHoldStartTime = 0;
 
         FL = hardwareMap.get(DcMotor.class, "leftfront");
         BL = hardwareMap.get(DcMotor.class, "leftback");
@@ -55,9 +60,9 @@ public class teleop extends LinearOpMode {
         tilt = hardwareMap.get(Servo.class, "tilt");
         roller = hardwareMap.get(CRServo.class,"roller");
         dump = hardwareMap.get(Servo.class, "dump");
-        slide_button = hardwareMap.get(DigitalChannel.class, "slide_button");
         // launch = hardwareMap.get(Servo.class, "launch");
         elevation.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        button = hardwareMap.get(TouchSensor.class, "button");
 
 
         waitForStart();
@@ -73,6 +78,7 @@ public class teleop extends LinearOpMode {
             BR.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
             evelation_hold_pos = elevation.getCurrentPosition(); // bad code lol
+
 
             while (opModeIsActive()) {
                 telemetry.addData("leftstickX", gamepad1.left_stick_x);
@@ -209,23 +215,47 @@ public class teleop extends LinearOpMode {
 
 
                 // slide
-                if (gamepad1.dpad_up) { // slide out?
+// Check if we should stop holding position
+                if (isPositionSet && (System.currentTimeMillis() - positionHoldStartTime > HOLD_DURATION)) {
+                    slide.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+                    slide.setPower(0);
+                    isPositionSet = false;
+                }
+
+                if (gamepad1.dpad_up) {
+                    // Manual control moving out
+                    slide.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
                     slide.setPower(-1);
+                    isPositionSet = false;
                 }
-                else if (gamepad1.dpad_down && !slide_button.getState()) { //slide in? check button polarity
-                    slide.setPower(1);
+                else if (gamepad1.dpad_down) {
+                    if (button.isPressed() && !isPositionSet) {
+                        // Button just pressed - start position hold
+                        slide.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+                        slide.setTargetPosition(slide.getCurrentPosition());
+                        slide.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                        slide.setPower(HOLDING_POWER);
+                        isPositionSet = true;
+                        positionHoldStartTime = System.currentTimeMillis();
+                    }
+                    else if (!button.isPressed() && !isPositionSet) {
+                        // Moving in, but button not pressed yet
+                        slide.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+                        slide.setPower(1);
+                    }
                 }
-                else {
+                else if (!isPositionSet) {
+                    // Stop if not holding position
+                    slide.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
                     slide.setPower(0);
                 }
 
-                // roller
-                if (gamepad1.a) {
-                    roller.setPower(1000);
-                }
-                else {
-                    roller.setPower(0);
-                }
+                telemetry.addData("Button Pressed", button.isPressed());
+                telemetry.addData("Motor Position", slide.getCurrentPosition());
+                telemetry.addData("Is Position Set", isPositionSet);
+                telemetry.addData("Hold Time Remaining",
+                        isPositionSet ? (HOLD_DURATION - (System.currentTimeMillis() - positionHoldStartTime)) : 0);
+                telemetry.update();
 
                 //unroller
                 if(gamepad1.b) {
