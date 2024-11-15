@@ -6,10 +6,12 @@ import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.hardware.DigitalChannel;
 
 @TeleOp(name = "teleop")
 public class teleop extends LinearOpMode {
 
+    private DigitalChannel slide_button;
     public DcMotor FL;
     public DcMotor BL;
     public DcMotor FR;
@@ -53,12 +55,14 @@ public class teleop extends LinearOpMode {
         tilt = hardwareMap.get(Servo.class, "tilt");
         roller = hardwareMap.get(CRServo.class,"roller");
         dump = hardwareMap.get(Servo.class, "dump");
+        slide_button = hardwareMap.get(DigitalChannel.class, "slide_button");
         // launch = hardwareMap.get(Servo.class, "launch");
         elevation.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
 
         waitForStart();
         if (opModeIsActive()) {
+
             FL.setDirection(DcMotorSimple.Direction.FORWARD);
             BL.setDirection(DcMotorSimple.Direction.FORWARD);
             FR.setDirection(DcMotorSimple.Direction.REVERSE);
@@ -213,10 +217,10 @@ public class teleop extends LinearOpMode {
 
 
                 // slide
-                if (gamepad1.dpad_up) {
+                if (gamepad1.dpad_up) { // slide out?
                     slide.setPower(-1);
                 }
-                else if (gamepad1.dpad_down) {
+                else if (gamepad1.dpad_down && slide_button.getState()) { //slide in? check button polarity
                     slide.setPower(1);
                 }
                 else {
