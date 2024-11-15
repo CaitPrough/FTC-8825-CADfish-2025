@@ -200,7 +200,7 @@ public class teleop extends LinearOpMode {
                     if ((System.currentTimeMillis() - lock_start_time < 5000)  && elevation_locked == true) {
                         elevation.setTargetPosition(evelation_hold_pos);
                         elevation.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                        elevation.setPower(-1.0);
+                        elevation.setPower(-0.85);
                     }
                     else {
                         elevation_locked = false; //technically redundant and should be purged via a rewrite of logic...
