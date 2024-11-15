@@ -176,44 +176,36 @@ public class teleop extends LinearOpMode {
 
                 // elevation (formerly pitch)
                 if (gamepad1.left_bumper) {
-
+                    // Move down
                     elevation.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-                    elevation.setPower(1);
-                    elevation_locked = false;
-                }
-
-                else if (gamepad1.right_bumper) {
-                    if (tilt.getPosition() != 0.4){
+                    elevation.setPower(1); // Assuming positive power moves it down
+                    elevation_locked = false; // Do not hold position
+                } else if (gamepad1.right_bumper) {
+                    // Move up
+                    if (tilt.getPosition() != 0.4) {
                         tilt.setPosition(0.4);
-                        sleep(50);
+                        sleep(50); // Prevent rapid re-positioning
                     }
-                    evelation_hold_pos = elevation.getCurrentPosition();
+                    evelation_hold_pos = elevation.getCurrentPosition(); // Save hold position
                     elevation.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-                    elevation.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-                    lock_start_time = System.currentTimeMillis(); // start timer for motor lock so we dont burn the motor.... again...
-                    elevation_locked = true;
-
-                   // elevation.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                   // elevation.setTargetPosition(elevation.getCurrentPosition());
-                //    evelation_hold_pos = elevation.getCurrentPosition();
-                  //  elevation.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-                    elevation.setPower(-1);
-
-                }
-                else {
-                    if ((System.currentTimeMillis() - lock_start_time < 5000)  && elevation_locked == true) {
+                    elevation.setPower(-1); // Assuming negative power moves it up
+                    lock_start_time = System.currentTimeMillis(); // Timer to avoid overuse
+                    elevation_locked = true; // Enable holding position
+                } else {
+                    // No button pressed
+                    if (elevation_locked && (System.currentTimeMillis() - lock_start_time < 5000)) {
+                        // Hold the last position if within safe locking time
                         elevation.setTargetPosition(evelation_hold_pos);
                         elevation.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                        elevation.setPower(-0.85);
+                        elevation.setPower(0.2); // Small power to maintain position
+                    } else {
+                        // If lock expired or no lock, stop movement
+                        elevation.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+                        elevation.setPower(0);
+                        elevation_locked = false;
                     }
-                    else {
-                        elevation_locked = false; //technically redundant and should be purged via a rewrite of logic...
-                    }
-
-                 //   elevation.setTargetPosition(elevation.getCurrentPosition());
-                 //   evelation_hold_pos = elevation.getCurrentPosition();
-                 //   elevation.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
                 }
+
 
 
                 // slide
