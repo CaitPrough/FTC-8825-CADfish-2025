@@ -42,6 +42,7 @@ public class teleop extends LinearOpMode {
         double driveSpeed = 1.0;
         int evelation_hold_pos;
         boolean elevation_locked = false;
+        long lock_start_time = System.currentTimeMillis();
 
         FL = hardwareMap.get(DcMotor.class, "leftfront");
         BL = hardwareMap.get(DcMotor.class, "leftback");
@@ -185,7 +186,7 @@ public class teleop extends LinearOpMode {
                     evelation_hold_pos = elevation.getCurrentPosition();
                     elevation.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
                     elevation.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-
+                    lock_start_time = System.currentTimeMillis(); // start timer for motor lock so we dont burn the motor.... again...
                     elevation_locked = true;
 
                    // elevation.setMode(DcMotor.RunMode.RUN_TO_POSITION);
@@ -196,10 +197,13 @@ public class teleop extends LinearOpMode {
 
                 }
                 else {
-                    if (elevation_locked == true) {
+                    if ((System.currentTimeMillis() - lock_start_time < 5000)  && elevation_locked == true) {
                         elevation.setTargetPosition(evelation_hold_pos);
                         elevation.setMode(DcMotor.RunMode.RUN_TO_POSITION);
                         elevation.setPower(-1.0);
+                    }
+                    else {
+                        elevation_locked = false; //technically redundant and should be purged via a rewrite of logic...
                     }
 
                  //   elevation.setTargetPosition(elevation.getCurrentPosition());
