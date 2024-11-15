@@ -220,7 +220,7 @@ public class teleop extends LinearOpMode {
                 if (gamepad1.dpad_up) { // slide out?
                     slide.setPower(-1);
                 }
-                else if (gamepad1.dpad_down && slide_button.getState()) { //slide in? check button polarity
+                else if (gamepad1.dpad_down && !slide_button.getState()) { //slide in? check button polarity
                     slide.setPower(1);
                 }
                 else {
