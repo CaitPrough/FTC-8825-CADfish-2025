@@ -126,19 +126,19 @@ public class teleop extends LinearOpMode {
 
                     }
                 } else {
-                    if (gamepad1.right_stick_y > 0.1) {
+                    if (gamepad1.left_stick_y > 0.1) {
                         // forward
                         strafe_BR_Y = gamepad1.left_stick_y * normalPower;
                         strafe_FL_Y = gamepad1.left_stick_y * normalPower;
                         strafe_FR_Y = gamepad1.left_stick_y * normalPower;
                         strafe_BL_Y = gamepad1.left_stick_y * normalPower;
-                    } else if (gamepad1.right_stick_y < -0.1) {
+                    } else if (gamepad1.left_stick_y < -0.1) {
                         // backward
                         strafe_BR_Y = gamepad1.left_stick_y * normalPower;
                         strafe_FL_Y = gamepad1.left_stick_y * normalPower;
                         strafe_FR_Y = gamepad1.left_stick_y * normalPower;
                         strafe_BL_Y = gamepad1.left_stick_y * normalPower;
-                    } else if (gamepad1.right_stick_x > 0.1) {
+                    } else if (gamepad1.left_stick_x > 0.1) {
                         // left turn
                         turn_FL_X = -gamepad1.right_stick_x * normalPower;
                         turn_FR_X = gamepad1.right_stick_x * normalPower;
