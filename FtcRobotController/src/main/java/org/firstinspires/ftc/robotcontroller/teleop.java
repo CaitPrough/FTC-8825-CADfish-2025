@@ -257,6 +257,15 @@ public class teleop extends LinearOpMode {
                         isPositionSet ? (HOLD_DURATION - (System.currentTimeMillis() - positionHoldStartTime)) : 0);
                 telemetry.update();
 
+
+                // roller
+                if (gamepad1.a) {
+                    roller.setPower(1000);
+                }
+                else {
+                    roller.setPower(0);
+                }
+
                 //unroller
                 if(gamepad1.b) {
                     roller.setPower(-255);
@@ -268,9 +277,12 @@ public class teleop extends LinearOpMode {
                 // tilt
                 if (gamepad1.dpad_left) {
                     tilt.setPosition(-8);
+
+
+
                 }
                 else if (gamepad1.dpad_right) {
-                    tilt.setPosition(0.85);
+                    tilt.setPosition(0.74);
                 }
 
 
