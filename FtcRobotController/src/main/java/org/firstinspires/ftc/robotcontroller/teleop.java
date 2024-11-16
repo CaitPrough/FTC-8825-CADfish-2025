@@ -279,10 +279,13 @@ public class teleop extends LinearOpMode {
                 }
 
                 if (unload_on_button_lock){
-                    if (System.currentTimeMillis() - positionHoldStartTime > 2000) {
+                    if ((System.currentTimeMillis() - positionHoldStartTime) > 2000) {
                         unload_on_button_lock = false;
                     }
                     roller.setPower(-255);
+                }
+                else{
+                    roller.setPower(0);
                 }
 
 
