@@ -287,24 +287,20 @@ public class teleop extends LinearOpMode {
 
 
                 // roller
-                if (gamepad1.a) {
-                    roller.setPower(1000);
-                }
-                else {
-                    roller.setPower(0);
-                }
 
-                //unroller
-                if(gamepad1.b) {
-                    roller.setPower(-255);
+                if (gamepad1.a) {
+                    roller.setPower(255);  // Full power forward
+                }
+                else if(gamepad1.b) {
+                    roller.setPower(-255); // Full power reverse
                 }
                 else {
-                    roller.setPower(0);
+                    roller.setPower(0);    // Stop
                 }
 
                 // tilt
                 if (gamepad1.dpad_left) {
-                    tilt.setPosition(-8);
+                    tilt.setPosition(-0.8);
 
 
 
