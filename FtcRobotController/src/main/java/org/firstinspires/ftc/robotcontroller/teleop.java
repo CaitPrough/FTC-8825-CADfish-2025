@@ -61,13 +61,15 @@ public class teleop extends LinearOpMode {
         roller = hardwareMap.get(CRServo.class,"roller");
         dump = hardwareMap.get(Servo.class, "dump");
         // launch = hardwareMap.get(Servo.class, "launch");
-        elevation.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+
         button = hardwareMap.get(TouchSensor.class, "button");
 
 
         waitForStart();
         if (opModeIsActive()) {
 
+            elevation.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+            slide.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
             FL.setDirection(DcMotorSimple.Direction.FORWARD);
             BL.setDirection(DcMotorSimple.Direction.FORWARD);
             FR.setDirection(DcMotorSimple.Direction.REVERSE);
@@ -223,14 +225,24 @@ public class teleop extends LinearOpMode {
                 }
 
 
-                if (gamepad1.dpad_up && slide.getCurrentPosition() >= -1735) {                 // limit horizontal position
+                if (gamepad1.dpad_up) {                 // limit horizontal position
+
                     telemetry.addData("Horizontal Slide Encoder", slide.getCurrentPosition());
-                    // Manual control moving out
-                    slide.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-                    slide.setPower(-1);
-                    isPositionSet = false;
+                    if (slide.getCurrentPosition() >= -1735){
+                        // Manual control moving out
+                        slide.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+                        slide.setPower(-1);
+                        isPositionSet = false;
+                    }
+                    else {
+                        slide.setTargetPosition(-1740);
+                        slide.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                        slide.setPower(0.2); // Small power to maintain position
+                    }
 
                 }
+
+
                 else if (gamepad1.dpad_down) {
                 /*    if (button.isPressed() && !isPositionSet) {
                         // Button just pressed - start position hold
