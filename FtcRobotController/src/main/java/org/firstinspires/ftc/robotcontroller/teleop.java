@@ -46,7 +46,7 @@ public class teleop extends LinearOpMode {
         long lock_start_time = System.currentTimeMillis();
         boolean buttonHitRecently = false;
         long buttonHitTime = 0;
-        int HOLD_DURATION = 500;
+        int HOLD_DURATION = 700;
         double HOLDING_POWER = 0.2;
         boolean isPositionSet = false;
         long positionHoldStartTime = 0;
@@ -84,7 +84,7 @@ public class teleop extends LinearOpMode {
                 telemetry.addData("leftstickX", gamepad1.left_stick_x);
                 telemetry.addData("leftstickY", gamepad1.left_stick_y);
                 telemetry.addData("rightstickX", gamepad1.right_stick_x);
-                telemetry.update();
+               // telemetry.update();
                 //lower power for more precise robot movement
                 if (gamepad1.x) {
 
@@ -222,23 +222,26 @@ public class teleop extends LinearOpMode {
                     isPositionSet = false;
                 }
 
-                if (gamepad1.dpad_up) {
+
+                if (gamepad1.dpad_up && slide.getCurrentPosition() >= -1735) {                 // limit horizontal position
+                    telemetry.addData("Horizontal Slide Encoder", slide.getCurrentPosition());
                     // Manual control moving out
                     slide.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
                     slide.setPower(-1);
                     isPositionSet = false;
+
                 }
                 else if (gamepad1.dpad_down) {
-                    if (button.isPressed() && !isPositionSet) {
+                /*    if (button.isPressed() && !isPositionSet) {
                         // Button just pressed - start position hold
                         slide.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-                        slide.setTargetPosition(slide.getCurrentPosition());
+                        slide.setTargetPosition(0);
                         slide.setMode(DcMotor.RunMode.RUN_TO_POSITION);
                         slide.setPower(HOLDING_POWER);
                         isPositionSet = true;
                         positionHoldStartTime = System.currentTimeMillis();
-                    }
-                    else if (!button.isPressed() && !isPositionSet) {
+                    }*/
+                    if (!button.isPressed() && !isPositionSet) {
                         // Moving in, but button not pressed yet
                         slide.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
                         slide.setPower(1);
@@ -250,11 +253,24 @@ public class teleop extends LinearOpMode {
                     slide.setPower(0);
                 }
 
+
+                if (button.isPressed() && !isPositionSet) {
+                    // Button just pressed - start position hold
+                    slide.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+                    slide.setTargetPosition(0);
+                    slide.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                    slide.setPower(HOLDING_POWER);
+                    isPositionSet = true;
+                    positionHoldStartTime = System.currentTimeMillis();
+                }
+
+
                 telemetry.addData("Button Pressed", button.isPressed());
                 telemetry.addData("Motor Position", slide.getCurrentPosition());
                 telemetry.addData("Is Position Set", isPositionSet);
                 telemetry.addData("Hold Time Remaining",
                         isPositionSet ? (HOLD_DURATION - (System.currentTimeMillis() - positionHoldStartTime)) : 0);
+                telemetry.addData("Elevation Hold time remaining", elevation_locked ? ((5000 - (System.currentTimeMillis() - lock_start_time)))/1000 : 0);
                 telemetry.update();
 
 
