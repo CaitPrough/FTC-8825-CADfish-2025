@@ -50,6 +50,7 @@ public class teleop extends LinearOpMode {
         double HOLDING_POWER = 0.2;
         boolean isPositionSet = false;
         long positionHoldStartTime = 0;
+        boolean unload_on_button_lock = false;
 
         FL = hardwareMap.get(DcMotor.class, "leftfront");
         BL = hardwareMap.get(DcMotor.class, "leftback");
@@ -138,7 +139,7 @@ public class teleop extends LinearOpMode {
                         strafe_FL_Y = gamepad1.left_stick_y * normalPower;
                         strafe_FR_Y = gamepad1.left_stick_y * normalPower;
                         strafe_BL_Y = gamepad1.left_stick_y * normalPower;
-                    } else if (gamepad1.left_stick_x > 0.1) {
+                    } else if (gamepad1.right_stick_x > 0.1) {
                         // left turn
                         turn_FL_X = -gamepad1.right_stick_x * normalPower;
                         turn_FR_X = gamepad1.right_stick_x * normalPower;
@@ -274,6 +275,14 @@ public class teleop extends LinearOpMode {
                     slide.setPower(HOLDING_POWER);
                     isPositionSet = true;
                     positionHoldStartTime = System.currentTimeMillis();
+                    unload_on_button_lock = true;
+                }
+
+                if (unload_on_button_lock){
+                    if (System.currentTimeMillis() - positionHoldStartTime > 2000) {
+                        unload_on_button_lock = false;
+                    }
+                    roller.setPower(-255);
                 }
 
 
