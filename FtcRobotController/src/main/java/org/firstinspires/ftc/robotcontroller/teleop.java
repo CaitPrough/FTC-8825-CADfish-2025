@@ -283,7 +283,7 @@ public class teleop extends LinearOpMode {
                 if (gamepad1.x && !sequenceStarted) {  // Only trigger once when x is first pressed
                     sequenceStarted = true;  // Start the sequence
                     slide_set = false;   // Reset position flag
-                    tilt.setPosition(0.2);  // Flip back immediately
+                    tilt.setPosition(0.1);  // Flip back immediately
                 }
 
                 if (sequenceStarted) {
