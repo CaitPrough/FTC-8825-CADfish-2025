@@ -283,7 +283,7 @@ public class teleop extends LinearOpMode {
                 if (gamepad1.x && !sequenceStarted) {  // Only trigger once when x is first pressed
                     sequenceStarted = true;  // Start the sequence
                     slide_set = false;   // Reset position flag
-                    tilt.setPosition(-0.8);  // Flip back immediately
+                    tilt.setPosition(-0.5);  // Flip back immediately
                 }
 
                 if (sequenceStarted) {
@@ -319,13 +319,14 @@ public class teleop extends LinearOpMode {
                         unload_on_button_lock = false;
                         sequenceStarted = false;  // Reset sequence
                     }
-                    else if (tilt.getPosition() <= -0.55) {
+                    else if (tilt.getPosition() <= -0.45) {
                         roller.setPower(-255);  // Run roller only if tilt condition is met
                     }
                 }
 
 
 
+                telemetry.addData("Tilt Position",tilt.getPosition());
                 telemetry.addData("Button Pressed", button.isPressed());
                 telemetry.addData("Motor Position", slide.getCurrentPosition());
                 telemetry.addData("Is Position Set", isPositionSet);
@@ -349,7 +350,7 @@ public class teleop extends LinearOpMode {
 
                 // tilt
                 if (gamepad1.dpad_left) {
-                    tilt.setPosition(-0.6);
+                    tilt.setPosition(-0.5);
 
 
 
