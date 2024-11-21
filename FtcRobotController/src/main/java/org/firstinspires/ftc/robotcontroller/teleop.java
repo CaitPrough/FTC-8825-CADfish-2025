@@ -218,16 +218,6 @@ public class teleop extends LinearOpMode {
                 }
 
 
-
-                // slide
-// Check if we should stop holding position
-                if (isPositionSet && (System.currentTimeMillis() - positionHoldStartTime > HOLD_DURATION)) {
-                    slide.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-                    slide.setPower(0);
-                    isPositionSet = false;
-                }
-
-
                 if (gamepad1.dpad_up) {                 // limit horizontal position
 
                     telemetry.addData("Horizontal Slide Encoder", slide.getCurrentPosition());
@@ -279,8 +269,13 @@ public class teleop extends LinearOpMode {
                     positionHoldStartTime = System.currentTimeMillis();
                    // unload_on_button_lock = true;
                 }
-
-
+                // slide
+// Check if we should stop holding position
+                if (isPositionSet && (System.currentTimeMillis() - positionHoldStartTime > HOLD_DURATION)) {
+                    slide.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+                    slide.setPower(0);
+                    isPositionSet = false;
+                }
 
 
 
@@ -299,17 +294,22 @@ public class teleop extends LinearOpMode {
                         }
                         if (button.isPressed()) {
                             roller.setPower(-255);  // Using proper servo power values
-                            // When button is pressed, lock position
-                        //    slide.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-                          //  slide.setTargetPosition(0);
-                          //  slide.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                          //  slide.setPower(HOLDING_POWER);
-                            isPositionSet = true;
-                              // Set flag to start roller
                             unroll_start_time = System.currentTimeMillis();  // Start timer for roller
                             unload_on_button_lock = true;
 
-
+                            slide.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+                            slide.setTargetPosition(0);
+                            slide.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                            slide.setPower(HOLDING_POWER);
+                            isPositionSet = true;
+                            positionHoldStartTime = System.currentTimeMillis();
+                        }
+                        // slide
+// Check if we should stop holding position
+                        if (isPositionSet && (System.currentTimeMillis() - positionHoldStartTime > HOLD_DURATION)) {
+                            slide.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+                            slide.setPower(0);
+                            isPositionSet = false;
                         }
                     }
                     if (unload_on_button_lock){
