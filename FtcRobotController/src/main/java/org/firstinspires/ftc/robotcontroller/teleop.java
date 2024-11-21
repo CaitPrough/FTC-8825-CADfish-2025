@@ -53,6 +53,7 @@ public class teleop extends LinearOpMode {
         boolean unload_on_button_lock = false;
         long unroll_start_time = 0;
         boolean sequenceStarted = false;
+        boolean slide_set = false;
 
         FL = hardwareMap.get(DcMotor.class, "leftfront");
         BL = hardwareMap.get(DcMotor.class, "leftback");
@@ -281,12 +282,12 @@ public class teleop extends LinearOpMode {
 
                 if (gamepad1.x && !sequenceStarted) {  // Only trigger once when x is first pressed
                     sequenceStarted = true;  // Start the sequence
-                    isPositionSet = false;   // Reset position flag
+                    slide_set = false;   // Reset position flag
                     tilt.setPosition(-0.8);  // Flip back immediately
                 }
 
                 if (sequenceStarted) {
-                    if (!isPositionSet) {
+                    if (!slide_set) {
                         // Move slide until button is pressed
                         if (!button.isPressed()) {
                             slide.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
@@ -300,13 +301,13 @@ public class teleop extends LinearOpMode {
                             slide.setTargetPosition(0);
                             slide.setMode(DcMotor.RunMode.RUN_TO_POSITION);
                             slide.setPower(HOLDING_POWER);
-                            isPositionSet = true;
+                            slide_set = true;
                             positionHoldStartTime = System.currentTimeMillis();
                         }
                     }
                         // slide
 // Check if we should stop holding position
-                    if (isPositionSet && (System.currentTimeMillis() - positionHoldStartTime > HOLD_DURATION)) {
+                    if (slide_set && (System.currentTimeMillis() - positionHoldStartTime > HOLD_DURATION)) {
                         slide.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
                         slide.setPower(0);
                     }
@@ -319,7 +320,7 @@ public class teleop extends LinearOpMode {
                         unload_on_button_lock = false;
                         sequenceStarted = false;  // Reset sequence
                     }
-                    else if (tilt.getPosition() >= -0.7) {
+                    else if (tilt.getPosition() <= -0.7) {
                         roller.setPower(-255);  // Run roller only if tilt condition is met
                     }
                 }
