@@ -283,7 +283,7 @@ public class teleop extends LinearOpMode {
                 if (gamepad1.x && !sequenceStarted) {  // Only trigger once when x is first pressed
                     sequenceStarted = true;  // Start the sequence
                     slide_set = false;   // Reset position flag
-                    tilt.setPosition(0.02);  // Flip back immediately
+                    tilt.setPosition(0.01);  // Flip back immediately
                 }
 
                 if (sequenceStarted) {
@@ -319,7 +319,7 @@ public class teleop extends LinearOpMode {
                         unload_on_button_lock = false;
                         sequenceStarted = false;  // Reset sequence
                     }
-                    else {//if (tilt.getPosition() <= -0.45) {
+                    else if (tilt.getPosition() <= 0.03) {
                         roller.setPower(-255);  // Run roller only if tilt condition is met
                     }
                 }
