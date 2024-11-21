@@ -293,7 +293,6 @@ public class teleop extends LinearOpMode {
                             slide.setPower(1);
                         }
                         if (button.isPressed()) {
-                            roller.setPower(-255);  // Using proper servo power values
                             unroll_start_time = System.currentTimeMillis();  // Start timer for roller
                             unload_on_button_lock = true;
 
@@ -312,14 +311,13 @@ public class teleop extends LinearOpMode {
                         slide.setPower(0);
                         isPositionSet = false;
                     }
-
-                    if (unload_on_button_lock && tilt.getPosition() >= -0.7){
-                        roller.setPower(-255);
-                        if ((System.currentTimeMillis() - unroll_start_time) > 2000) {
-                            roller.setPower(0);  // Stop after 2 seconds
-                            unload_on_button_lock = false;
-                            sequenceStarted = false;  // Reset sequence
-                        }
+                }
+                if (unload_on_button_lock && tilt.getPosition() >= -0.7){
+                    roller.setPower(-255);
+                    if ((System.currentTimeMillis() - unroll_start_time) > 2000) {
+                        roller.setPower(0);  // Stop after 2 seconds
+                        unload_on_button_lock = false;
+                        sequenceStarted = false;  // Reset sequence
                     }
                 }
 
