@@ -305,17 +305,23 @@ public class teleop extends LinearOpMode {
                           //  slide.setMode(DcMotor.RunMode.RUN_TO_POSITION);
                           //  slide.setPower(HOLDING_POWER);
                             isPositionSet = true;
-                            unload_on_button_lock = true;  // Set flag to start roller
+                              // Set flag to start roller
                             unroll_start_time = System.currentTimeMillis();  // Start timer for roller
+                            unload_on_button_lock = true;
 
-
-                            sleep(2000);
-
-                          //  roller.setPower(0);  // Stop after 2 seconds
-                            unload_on_button_lock = false;
-                            sequenceStarted = false;  // Reset sequence
 
                         }
+                    }
+                    if (unload_on_button_lock){
+                        if (System.currentTimeMillis() - unroll_start_time > 2000) {
+                            roller.setPower(0);  // Stop after 2 seconds
+                            unload_on_button_lock = false;
+                            sequenceStarted = false;  // Reset sequence
+                        }
+
+                    }
+                    else {
+                        roller.setPower(-255);
                     }
                 }
 
