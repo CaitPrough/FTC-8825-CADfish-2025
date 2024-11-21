@@ -313,6 +313,7 @@ public class teleop extends LinearOpMode {
                 }
 
                 if (unload_on_button_lock) {
+                    telemetry.addData("TIME DIFFERENCE", System.currentTimeMillis() - unroll_start_time);
                     if ((System.currentTimeMillis() - unroll_start_time) > 2000) {
                         roller.setPower(0);  // Stop roller after 2 seconds
                         unload_on_button_lock = false;
