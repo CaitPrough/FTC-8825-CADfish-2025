@@ -319,7 +319,8 @@ public class teleop extends LinearOpMode {
                         unload_on_button_lock = false;
                         sequenceStarted = false;  // Reset sequence
                     }
-                    else if (tilt.getPosition() <= 0.03) {
+                    else if (tilt.getPosition() >= 0.02) {
+                        sleep(100);
                         roller.setPower(-255);  // Run roller only if tilt condition is met
                     }
                 }
