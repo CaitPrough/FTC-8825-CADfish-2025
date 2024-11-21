@@ -313,8 +313,10 @@ public class teleop extends LinearOpMode {
                     }
                 }
 
-                if (unload_on_button_lock) {
-                    roller.setPower(tilt.getPosition() >= -0.7 ? -255 : 0);  // Adjust roller only if tilt condition is met
+       /*         if (unload_on_button_lock) {
+                    if (tilt.getPosition() >= -0.7) {
+                        roller.setPower(-255);  // Run roller only if tilt condition is met
+                    }
                     if ((System.currentTimeMillis() - unroll_start_time) > 2000) {
                         roller.setPower(0);  // Stop roller after 2 seconds
                         unload_on_button_lock = false;
@@ -322,8 +324,7 @@ public class teleop extends LinearOpMode {
                     }
                 }
 
-
-
+*/
 
                 telemetry.addData("Button Pressed", button.isPressed());
                 telemetry.addData("Motor Position", slide.getCurrentPosition());
