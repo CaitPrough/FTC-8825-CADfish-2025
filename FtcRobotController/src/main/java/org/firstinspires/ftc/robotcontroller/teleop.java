@@ -309,7 +309,6 @@ public class teleop extends LinearOpMode {
                     if (isPositionSet && (System.currentTimeMillis() - positionHoldStartTime > HOLD_DURATION)) {
                         slide.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
                         slide.setPower(0);
-                        isPositionSet = false;
                     }
                 }
 
