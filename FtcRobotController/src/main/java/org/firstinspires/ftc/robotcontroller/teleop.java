@@ -313,7 +313,7 @@ public class teleop extends LinearOpMode {
                         isPositionSet = false;
                     }
 
-                    if (unload_on_button_lock){
+                    if (unload_on_button_lock && tilt.getPosition() <= -0.7){
                         roller.setPower(-255);
                         if (System.currentTimeMillis() - unroll_start_time > 2000) {
                             roller.setPower(0);  // Stop after 2 seconds
@@ -347,7 +347,7 @@ public class teleop extends LinearOpMode {
 
                 // tilt
                 if (gamepad1.dpad_left) {
-                    tilt.setPosition(-0.8);
+                    tilt.setPosition(-0.7);
 
 
 
