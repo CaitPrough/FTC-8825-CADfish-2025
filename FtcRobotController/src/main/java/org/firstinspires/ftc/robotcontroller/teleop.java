@@ -51,6 +51,8 @@ public class teleop extends LinearOpMode {
         boolean isPositionSet = false;
         long positionHoldStartTime = 0;
         boolean unload_on_button_lock = false;
+        long unroll_start_time = 0;
+        boolean sequenceStarted = false;
 
         FL = hardwareMap.get(DcMotor.class, "leftfront");
         BL = hardwareMap.get(DcMotor.class, "leftback");
@@ -89,7 +91,7 @@ public class teleop extends LinearOpMode {
                 telemetry.addData("rightstickX", gamepad1.right_stick_x);
                // telemetry.update();
                 //lower power for more precise robot movement
-                if (gamepad1.x) {
+              /*  if (gamepad1.x) {
 
                     if (gamepad1.right_stick_y > 0.1) {
                         // forward
@@ -126,43 +128,43 @@ public class teleop extends LinearOpMode {
                         strafe_BR_Y = 0;
 
                     }
+                } else { */
+                if (gamepad1.left_stick_y > 0.1) {
+                    // forward
+                    strafe_BR_Y = gamepad1.left_stick_y * normalPower;
+                    strafe_FL_Y = gamepad1.left_stick_y * normalPower;
+                    strafe_FR_Y = gamepad1.left_stick_y * normalPower;
+                    strafe_BL_Y = gamepad1.left_stick_y * normalPower;
+                } else if (gamepad1.left_stick_y < -0.1) {
+                    // backward
+                    strafe_BR_Y = gamepad1.left_stick_y * normalPower;
+                    strafe_FL_Y = gamepad1.left_stick_y * normalPower;
+                    strafe_FR_Y = gamepad1.left_stick_y * normalPower;
+                    strafe_BL_Y = gamepad1.left_stick_y * normalPower;
+                } else if (gamepad1.right_stick_x > 0.1) {
+                    // left turn
+                    turn_FL_X = -gamepad1.right_stick_x * normalPower;
+                    turn_FR_X = gamepad1.right_stick_x * normalPower;
+                    turn_BL_X = -gamepad1.right_stick_x * normalPower;
+                    turn_BR_X = gamepad1.right_stick_x * normalPower;
+                } else if (gamepad1.right_stick_x < -0.1) {
+                    // right turn
+                    turn_FL_X = -gamepad1.right_stick_x * normalPower;
+                    turn_FR_X = gamepad1.right_stick_x * normalPower;
+                    turn_BL_X = -gamepad1.right_stick_x * normalPower;
+                    turn_BR_X = gamepad1.right_stick_x * normalPower;
                 } else {
-                    if (gamepad1.left_stick_y > 0.1) {
-                        // forward
-                        strafe_BR_Y = gamepad1.left_stick_y * normalPower;
-                        strafe_FL_Y = gamepad1.left_stick_y * normalPower;
-                        strafe_FR_Y = gamepad1.left_stick_y * normalPower;
-                        strafe_BL_Y = gamepad1.left_stick_y * normalPower;
-                    } else if (gamepad1.left_stick_y < -0.1) {
-                        // backward
-                        strafe_BR_Y = gamepad1.left_stick_y * normalPower;
-                        strafe_FL_Y = gamepad1.left_stick_y * normalPower;
-                        strafe_FR_Y = gamepad1.left_stick_y * normalPower;
-                        strafe_BL_Y = gamepad1.left_stick_y * normalPower;
-                    } else if (gamepad1.right_stick_x > 0.1) {
-                        // left turn
-                        turn_FL_X = -gamepad1.right_stick_x * normalPower;
-                        turn_FR_X = gamepad1.right_stick_x * normalPower;
-                        turn_BL_X = -gamepad1.right_stick_x * normalPower;
-                        turn_BR_X = gamepad1.right_stick_x * normalPower;
-                    } else if (gamepad1.right_stick_x < -0.1) {
-                        // right turn
-                        turn_FL_X = -gamepad1.right_stick_x * normalPower;
-                        turn_FR_X = gamepad1.right_stick_x * normalPower;
-                        turn_BL_X = -gamepad1.right_stick_x * normalPower;
-                        turn_BR_X = gamepad1.right_stick_x * normalPower;
-                    } else {
-                        turn_FL_X = 0;
-                        turn_FR_X = 0;
-                        turn_BL_X = 0;
-                        turn_BR_X = 0;
-                        strafe_FL_Y = 0;
-                        strafe_FR_Y = 0;
-                        strafe_BL_Y = 0;
-                        strafe_BR_Y = 0;
+                    turn_FL_X = 0;
+                    turn_FR_X = 0;
+                    turn_BL_X = 0;
+                    turn_BR_X = 0;
+                    strafe_FL_Y = 0;
+                    strafe_FR_Y = 0;
+                    strafe_BL_Y = 0;
+                    strafe_BR_Y = 0;
 
-                    }
                 }
+
                 // strafe
                 if (gamepad1.left_stick_x < -0.1) {
                     // right strafe
@@ -260,14 +262,14 @@ public class teleop extends LinearOpMode {
                         slide.setPower(1);
                     }
                 }
-                else if (!isPositionSet) {
+                else if (!isPositionSet && !sequenceStarted) {
                     // Stop if not holding position
                     slide.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
                     slide.setPower(0);
                 }
 
 
-                if (button.isPressed() && !isPositionSet) {
+                if (button.isPressed() && !isPositionSet && !sequenceStarted) {
                     // Button just pressed - start position hold
                     slide.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
                     slide.setTargetPosition(0);
@@ -275,17 +277,46 @@ public class teleop extends LinearOpMode {
                     slide.setPower(HOLDING_POWER);
                     isPositionSet = true;
                     positionHoldStartTime = System.currentTimeMillis();
-                    unload_on_button_lock = true;
+                   // unload_on_button_lock = true;
                 }
 
-                if (unload_on_button_lock){
-                    if ((System.currentTimeMillis() - positionHoldStartTime) > 2000) {
-                        unload_on_button_lock = false;
-                    }
-                    roller.setPower(-255);
+
+
+
+
+                if (gamepad1.x && !sequenceStarted) {  // Only trigger once when x is first pressed
+                    sequenceStarted = true;  // Start the sequence
+                    isPositionSet = false;   // Reset position flag
+                    tilt.setPosition(-0.8);  // Flip back immediately
                 }
-                else{
-                    roller.setPower(0);
+
+                if (sequenceStarted) {
+                    if (!isPositionSet) {
+                        // Move slide until button is pressed
+                        if (!button.isPressed()) {
+                            slide.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+                            slide.setPower(1);
+                        }
+                        if (button.isPressed()) {
+                            roller.setPower(-255);  // Using proper servo power values
+                            // When button is pressed, lock position
+                        //    slide.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+                          //  slide.setTargetPosition(0);
+                          //  slide.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                          //  slide.setPower(HOLDING_POWER);
+                            isPositionSet = true;
+                            unload_on_button_lock = true;  // Set flag to start roller
+                            unroll_start_time = System.currentTimeMillis();  // Start timer for roller
+
+
+                            sleep(2000);
+
+                          //  roller.setPower(0);  // Stop after 2 seconds
+                            unload_on_button_lock = false;
+                            sequenceStarted = false;  // Reset sequence
+
+                        }
+                    }
                 }
 
 
@@ -306,7 +337,7 @@ public class teleop extends LinearOpMode {
                 else if(gamepad1.b) {
                     roller.setPower(-255); // Full power reverse
                 }
-                else {
+                else if (!sequenceStarted) {
                     roller.setPower(0);    // Stop
                 }
 
