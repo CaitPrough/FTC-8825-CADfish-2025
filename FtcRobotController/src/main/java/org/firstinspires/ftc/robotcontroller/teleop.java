@@ -314,17 +314,15 @@ public class teleop extends LinearOpMode {
                 }
 
                 if (unload_on_button_lock) {
-                    if ((System.currentTimeMillis() - unroll_start_time) > 2000) {
+                    if ((System.currentTimeMillis() - unroll_start_time) > 2500) {
                         roller.setPower(0);  // Stop roller after 2 seconds
                         unload_on_button_lock = false;
                         sequenceStarted = false;  // Reset sequence
                     }
-                    else if (tilt.getPosition() <= 0.02) {
-                        sleep(700);
+                    else if ((System.currentTimeMillis() - unroll_start_time) > 1000 && tilt.getPosition() <= 0.02) {
                         roller.setPower(-255);  // Run roller only if tilt condition is met
                     }
                 }
-
 
 
                 telemetry.addData("Tilt Position",tilt.getPosition());
