@@ -313,9 +313,9 @@ public class teleop extends LinearOpMode {
                         isPositionSet = false;
                     }
 
-                    if (unload_on_button_lock && tilt.getPosition() <= -0.7){
+                    if (unload_on_button_lock && tilt.getPosition() >= -0.7){
                         roller.setPower(-255);
-                        if (System.currentTimeMillis() - unroll_start_time > 2000) {
+                        if ((System.currentTimeMillis() - unroll_start_time) > 2000) {
                             roller.setPower(0);  // Stop after 2 seconds
                             unload_on_button_lock = false;
                             sequenceStarted = false;  // Reset sequence
