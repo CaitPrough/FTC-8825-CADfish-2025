@@ -193,7 +193,7 @@ public class teleop extends LinearOpMode {
                     elevation_locked = false; // Do not hold position
                 } else if (gamepad1.right_bumper) {
                     // Move up
-                    if (tilt.getPosition() != 0.4) {
+                    if (tilt.getPosition() <= 0.4) {
                         tilt.setPosition(0.4);
                         sleep(50); // Prevent rapid re-positioning
                     }
