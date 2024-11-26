@@ -8,6 +8,29 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.TouchSensor;
 
+import org.firstinspires.ftc.robotcore.external.hardware.camera.BuiltinCameraDirection;
+import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
+import org.firstinspires.ftc.vision.VisionPortal;
+import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
+import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
+import org.opencv.core.Core;
+import org.opencv.core.Mat;
+import org.opencv.core.MatOfPoint;
+import org.opencv.core.Point;
+import org.opencv.core.Rect;
+import org.opencv.core.Scalar;
+import org.opencv.core.Size;
+import org.opencv.imgproc.Imgproc;
+import org.opencv.imgproc.Moments;
+import org.openftc.easyopencv.OpenCvCamera;
+import org.openftc.easyopencv.OpenCvCameraFactory;
+import org.openftc.easyopencv.OpenCvCameraRotation;
+import org.openftc.easyopencv.OpenCvPipeline;
+import org.openftc.easyopencv.OpenCvWebcam;
+
+import java.util.ArrayList;
+import java.util.List;
+
 @TeleOp(name = "teleop")
 public class teleop extends LinearOpMode {
     TouchSensor button;
@@ -25,6 +48,20 @@ public class teleop extends LinearOpMode {
 
     final float normalPower = 0.7f;
     final float lowerPower = 0.4f;
+
+    private static final boolean USE_WEBCAM = true;  // true for webcam, false for phone camera
+    private AprilTagProcessor aprilTag;
+    private VisionPortal visionPortal;
+    OpenCvWebcam webcam1 = null;
+    double cY = 0;
+    double cX = -1; // Use -1 to indicate no detection initially
+    double width = 0;
+
+    double leftThreshold = 500;
+    double rightThreshold = 1000;
+    public static final double objectWidthInRealWorldUnits = 3.75;
+    public static final double focalLength = 728;
+
 
     @Override
     public void runOpMode() {
@@ -66,11 +103,32 @@ public class teleop extends LinearOpMode {
         dump = hardwareMap.get(Servo.class, "dump");
         // launch = hardwareMap.get(Servo.class, "launch");
 
+
+
         button = hardwareMap.get(TouchSensor.class, "button");
+        WebcamName webcamName = hardwareMap.get(WebcamName.class, "webcam1");
+        int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier(
+                "cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName()
+        );
+
+        webcam1 = OpenCvCameraFactory.getInstance().createWebcam(webcamName, cameraMonitorViewId);
+
+        webcam1.setPipeline(new RedCubePipeline());
+
+        webcam1.openCameraDeviceAsync(new OpenCvCamera.AsyncCameraOpenListener() {
+            public void onOpened() {
+                webcam1.startStreaming(1280, 720, OpenCvCameraRotation.UPRIGHT);
+            }
+
+            public void onError(int errorCode) {
+            }
+        });
 
 
+        initAprilTag();
         waitForStart();
         if (opModeIsActive()) {
+
 
             elevation.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
             slide.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
@@ -84,7 +142,7 @@ public class teleop extends LinearOpMode {
             BR.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
             evelation_hold_pos = elevation.getCurrentPosition(); // bad code lol
-
+            visionPortal.resumeStreaming();
 
             while (opModeIsActive()) {
                 telemetry.addData("leftstickX", gamepad1.left_stick_x);
@@ -332,7 +390,7 @@ public class teleop extends LinearOpMode {
                 telemetry.addData("Hold Time Remaining",
                         isPositionSet ? (HOLD_DURATION - (System.currentTimeMillis() - positionHoldStartTime)) : 0);
                 telemetry.addData("Elevation Hold time remaining", elevation_locked ? ((5000 - (System.currentTimeMillis() - lock_start_time)))/1000 : 0);
-                telemetry.update();
+
 
 
                 // roller
@@ -374,7 +432,172 @@ public class teleop extends LinearOpMode {
                 FR.setPower(driveSpeed * (turn_FR_X + strafe_FR_X + strafe_FR_Y));
                 BL.setPower(driveSpeed * (turn_BL_X + strafe_BL_X + strafe_BL_Y));
                 BR.setPower(driveSpeed * (turn_BR_X + strafe_BR_X + strafe_BR_Y));
+
+
+                double noCube = 0;
+                if (cX < leftThreshold) {
+                    telemetry.addData("driving","left");
+                } else if (cX > rightThreshold || cX < noCube) {
+                    telemetry.addLine("driving right");
+
+                } else if (cX < rightThreshold && cX > leftThreshold) {
+                    telemetry.addLine("driving center");
+                }
+                telemetry.addData("Blob cX", cX);
+
+                telemetryAprilTag();
+                sleep(20);
+
+                telemetry.update();
             }
         }
     }
-}
+
+
+    public void initAprilTag() {
+        // Create the AprilTag processor the easy way.
+        aprilTag = AprilTagProcessor.easyCreateWithDefaults();
+
+        // Create the vision portal using the builder
+        if (USE_WEBCAM) {
+            visionPortal = new VisionPortal.Builder()
+                    .setCamera(hardwareMap.get(WebcamName.class, "webcam1"))
+                    .addProcessor(aprilTag)
+                    .enableLiveView(true)
+                    .setAutoStartStreamOnBuild(true)
+                    .setStreamFormat(VisionPortal.StreamFormat.MJPEG)
+                    .build();
+        } else {
+            visionPortal = VisionPortal.easyCreateWithDefaults(
+                    BuiltinCameraDirection.BACK, aprilTag);
+        }
+    }   // end method initAprilTag()
+
+    private void telemetryAprilTag() {
+
+        List<AprilTagDetection> currentDetections = aprilTag.getDetections();
+        telemetry.addData("# AprilTags Detected", currentDetections.size());
+
+        // Step through the list of detections and display info for each one.
+        for (AprilTagDetection detection : currentDetections) {
+            if (detection.metadata != null) {
+                telemetry.addLine(String.format("\n==== (ID %d) %s", detection.id, detection.metadata.name));
+                telemetry.addLine(String.format("XYZ %6.1f %6.1f %6.1f  (inch)", detection.ftcPose.x, detection.ftcPose.y, detection.ftcPose.z));
+                telemetry.addLine(String.format("PRY %6.1f %6.1f %6.1f  (deg)", detection.ftcPose.pitch, detection.ftcPose.roll, detection.ftcPose.yaw));
+                telemetry.addLine(String.format("RBE %6.1f %6.1f %6.1f  (inch, deg, deg)", detection.ftcPose.range, detection.ftcPose.bearing, detection.ftcPose.elevation));
+            } else {
+                telemetry.addLine(String.format("\n==== (ID %d) Unknown", detection.id));
+                telemetry.addLine(String.format("Center %6.0f %6.0f   (pixels)", detection.center.x, detection.center.y));
+            }
+        }   // end for() loop
+
+        // Add "key" information to telemetry
+        telemetry.addLine("\nkey:\nXYZ = X (Right), Y (Forward), Z (Up) dist.");
+        telemetry.addLine("PRY = Pitch, Roll & Yaw (XYZ Rotation)");
+        telemetry.addLine("RBE = Range, Bearing & Elevation");
+
+    }   // end method telemetryAprilTag()
+
+
+
+    class RedCubePipeline extends OpenCvPipeline {
+        @Override
+        public Mat processFrame(Mat input) {
+            // Preprocess the frame to detect yellow regions
+            Mat redMask = preprocessFrame(input);
+
+            // Find contours of the detected yellow regions
+            List<MatOfPoint> contours = new ArrayList<>();
+            Mat hierarchy = new Mat();
+            Imgproc.findContours(redMask, contours, hierarchy, Imgproc.RETR_EXTERNAL, Imgproc.CHAIN_APPROX_SIMPLE);
+
+            // Find the largest yellow contour (blob)
+            MatOfPoint largestContour = findLargestContour(contours);
+
+            if (largestContour != null) {
+                // Draw a red outline around the largest detected object
+                Imgproc.drawContours(input, contours, contours.indexOf(largestContour), new Scalar(255, 0, 0), 2);
+                // Calculate the width of the bounding box
+                width = calculateWidth(largestContour);
+
+                // Display the width next to the label
+                String widthLabel = "Width: " + (int) width + " pixels";
+                Imgproc.putText(input, widthLabel, new Point(cX + 10, cY + 20), Imgproc.FONT_HERSHEY_SIMPLEX, 0.5, new Scalar(0, 255, 0), 2);
+                //Display the Distance
+                String distanceLabel = "Distance: " + String.format("%.2f", getDistance(width)) + " inches";
+                Imgproc.putText(input, distanceLabel, new Point(cX + 10, cY + 60), Imgproc.FONT_HERSHEY_SIMPLEX, 0.5, new Scalar(0, 255, 0), 2);
+                // Calculate the centroid of the largest contour
+                Moments moments = Imgproc.moments(largestContour);
+                cX = moments.get_m10() / moments.get_m00();
+                cY = moments.get_m01() / moments.get_m00();
+
+                // Draw a dot at the centroid
+                String label = "(" + (int) cX + ", " + (int) cY + ")";
+                Imgproc.putText(input, label, new Point(cX + 10, cY), Imgproc.FONT_HERSHEY_COMPLEX, 0.5, new Scalar(0, 255, 0), 2);
+                Imgproc.circle(input, new Point(cX, cY), 5, new Scalar(0, 255, 0), -1);
+
+                //telemetry for cube sides
+                if (cX < leftThreshold) {
+                    telemetry.addLine("left");
+                    telemetry.update();
+
+                }else if (cX < rightThreshold && cX > leftThreshold) {
+                    telemetry.addLine("middle");
+                    telemetry.update();
+                } else if (cX > rightThreshold) {
+                    telemetry.addLine("right");
+                    telemetry.update();
+                }
+                telemetry.update();
+
+            }
+
+            return input;
+        }
+
+        private Mat preprocessFrame(Mat frame) {
+            Mat hsvFrame = new Mat();
+            Imgproc.cvtColor(frame, hsvFrame, Imgproc.COLOR_BGR2HSV);
+
+            Scalar lowerRed = new Scalar(100, 100, 100);
+            Scalar upperRed = new Scalar(180, 255, 255);
+
+
+            Mat redMask = new Mat();
+            Core.inRange(hsvFrame, lowerRed, upperRed, redMask);
+
+            Mat kernel = Imgproc.getStructuringElement(Imgproc.MORPH_RECT, new Size(5, 5));
+            Imgproc.morphologyEx(redMask, redMask, Imgproc.MORPH_OPEN, kernel);
+            Imgproc.morphologyEx(redMask, redMask, Imgproc.MORPH_CLOSE, kernel);
+
+            return redMask;
+        }
+
+        private MatOfPoint findLargestContour(List<MatOfPoint> contours) {
+            double maxArea = 0;
+            MatOfPoint largestContour = null;
+
+            for (MatOfPoint contour : contours) {
+                double area = Imgproc.contourArea(contour);
+                if (area > maxArea) {
+                    maxArea = area;
+                    largestContour = contour;
+                }
+            }
+
+            return largestContour;
+        }
+        private double calculateWidth(MatOfPoint contour) {
+            Rect boundingRect = Imgproc.boundingRect(contour);
+            return boundingRect.width;
+        }
+
+    }
+    private static double getDistance(double width){
+        double distance = (objectWidthInRealWorldUnits * focalLength) / width;
+        return distance;
+    }
+
+
+
+} // end class
