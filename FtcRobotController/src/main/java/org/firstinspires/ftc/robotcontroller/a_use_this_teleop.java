@@ -14,21 +14,12 @@ import org.firstinspires.ftc.vision.VisionPortal;
 import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
 import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
 import org.openftc.easyopencv.OpenCvCamera;
-import org.openftc.easyopencv.OpenCvCameraFactory;
-import org.openftc.easyopencv.OpenCvCameraRotation;
-import org.openftc.easyopencv.OpenCvPipeline;
-import org.opencv.core.Mat;
-import org.opencv.core.MatOfKeyPoint;
-import org.opencv.core.Scalar;
 import org.opencv.features2d.SimpleBlobDetector;
-import org.opencv.features2d.SimpleBlobDetector_Params;
-import org.opencv.imgproc.Imgproc;
-import org.opencv.android.OpenCVLoader;
 
 import java.util.List;
 
 @TeleOp(name = "teleop")
-public class teleop extends LinearOpMode {
+public class a_use_this_teleop extends LinearOpMode {
     TouchSensor button;
     public DcMotor FL;
     public DcMotor BL;
