@@ -123,27 +123,22 @@ public class a_use_this_teleop extends LinearOpMode {
 
 
 
-                if (gamepad1.right_trigger < 0.1) { // normal
-                    if (gamepad1.left_stick_y > 0.1) {
-                        // forward
-                        strafe_BR_Y = gamepad1.left_stick_y * normalPower;
+                if (gamepad1.right_trigger < 0.1) { // Normal driving mode
+                    // Forward/backward motion
+                    if (Math.abs(gamepad1.left_stick_y) > 0.1) {
                         strafe_FL_Y = gamepad1.left_stick_y * normalPower;
                         strafe_FR_Y = gamepad1.left_stick_y * normalPower;
                         strafe_BL_Y = gamepad1.left_stick_y * normalPower;
-                    } else if (gamepad1.left_stick_y < -0.1) {
-                        // backward
                         strafe_BR_Y = gamepad1.left_stick_y * normalPower;
-                        strafe_FL_Y = gamepad1.left_stick_y * normalPower;
-                        strafe_FR_Y = gamepad1.left_stick_y * normalPower;
-                        strafe_BL_Y = gamepad1.left_stick_y * normalPower;
-                    } else if (gamepad1.right_stick_x > 0.1) {
-                        // left turn
-                        turn_FL_X = -gamepad1.right_stick_x * normalPower;
-                        turn_FR_X = gamepad1.right_stick_x * normalPower;
-                        turn_BL_X = -gamepad1.right_stick_x * normalPower;
-                        turn_BR_X = gamepad1.right_stick_x * normalPower;
-                    } else if (gamepad1.right_stick_x < -0.1) {
-                        // right turn
+                    } else {
+                        strafe_FL_Y = 0;
+                        strafe_FR_Y = 0;
+                        strafe_BL_Y = 0;
+                        strafe_BR_Y = 0;
+                    }
+
+                    // Turning motion
+                    if (Math.abs(gamepad1.right_stick_x) > 0.1) {
                         turn_FL_X = -gamepad1.right_stick_x * normalPower;
                         turn_FR_X = gamepad1.right_stick_x * normalPower;
                         turn_BL_X = -gamepad1.right_stick_x * normalPower;
@@ -153,13 +148,38 @@ public class a_use_this_teleop extends LinearOpMode {
                         turn_FR_X = 0;
                         turn_BL_X = 0;
                         turn_BR_X = 0;
+                    }
+                } else if (gamepad1.right_trigger > 0.1) { // Reverse driving mode
+                    // Reverse forward/backward motion
+                    if (Math.abs(gamepad1.left_stick_y) > 0.1) {
+                        strafe_FL_Y = -gamepad1.left_stick_y * normalPower;
+                        strafe_FR_Y = -gamepad1.left_stick_y * normalPower;
+                        strafe_BL_Y = -gamepad1.left_stick_y * normalPower;
+                        strafe_BR_Y = -gamepad1.left_stick_y * normalPower;
+                    } else {
                         strafe_FL_Y = 0;
                         strafe_FR_Y = 0;
                         strafe_BL_Y = 0;
                         strafe_BR_Y = 0;
+                    }
 
+                    // Reverse turning motion
+                    if (Math.abs(gamepad1.right_stick_x) > 0.1) {
+                        turn_FL_X = -gamepad1.right_stick_x * normalPower;
+                        turn_FR_X = gamepad1.right_stick_x * normalPower;
+                        turn_BL_X = -gamepad1.right_stick_x * normalPower;
+                        turn_BR_X = gamepad1.right_stick_x * normalPower;
+                    } else {
+                        turn_FL_X = 0;
+                        turn_FR_X = 0;
+                        turn_BL_X = 0;
+                        turn_BR_X = 0;
                     }
                 }
+
+
+
+
                 if (gamepad1.right_trigger > 0.1){ //REVERSE driving
                     if (gamepad1.left_stick_y > 0.1) {
                         // backward
@@ -187,7 +207,7 @@ public class a_use_this_teleop extends LinearOpMode {
                         turn_FR_X = gamepad1.right_stick_x * normalPower;
                         turn_BL_X = -gamepad1.right_stick_x * normalPower;
                         turn_BR_X = gamepad1.right_stick_x * normalPower;
-                    } else {
+                    } else if (!(gamepad1.left_stick_y > 0.1) || !(gamepad1.left_stick_y < 0.1)){
                         turn_FL_X = 0;
                         turn_FR_X = 0;
                         turn_BL_X = 0;
@@ -197,6 +217,16 @@ public class a_use_this_teleop extends LinearOpMode {
                         strafe_BL_Y = 0;
                         strafe_BR_Y = 0;
 
+                    }
+                    else {
+                        turn_FL_X = 0;
+                        turn_FR_X = 0;
+                        turn_BL_X = 0;
+                        turn_BR_X = 0;
+                        strafe_FL_Y = 0;
+                        strafe_FR_Y = 0;
+                        strafe_BL_Y = 0;
+                        strafe_BR_Y = 0;
                     }
                 }
 
@@ -214,16 +244,16 @@ public class a_use_this_teleop extends LinearOpMode {
                     // strafe
                     if (gamepad1.left_stick_x < -0.1) {
                         // right strafe
-                        strafe_FL_X = -gamepad1.left_stick_x;
-                        strafe_FR_X = gamepad1.left_stick_x;
-                        strafe_BL_X = gamepad1.left_stick_x;
-                        strafe_BR_X = -gamepad1.left_stick_x;
+                        strafe_FL_X = -gamepad1.left_stick_x * normalPower;
+                        strafe_FR_X = gamepad1.left_stick_x * normalPower;
+                        strafe_BL_X = gamepad1.left_stick_x * normalPower;
+                        strafe_BR_X = -gamepad1.left_stick_x * normalPower;
                     } else if (gamepad1.left_stick_x > 0.1) {
                         // left strafe
-                        strafe_FL_X = -gamepad1.left_stick_x;
-                        strafe_FR_X = gamepad1.left_stick_x;
-                        strafe_BL_X = gamepad1.left_stick_x;
-                        strafe_BR_X = -gamepad1.left_stick_x;
+                        strafe_FL_X = -gamepad1.left_stick_x * normalPower;
+                        strafe_FR_X = gamepad1.left_stick_x * normalPower;
+                        strafe_BL_X = gamepad1.left_stick_x * normalPower;
+                        strafe_BR_X = -gamepad1.left_stick_x * normalPower;
                     } else {
                         strafe_FL_X = 0;
                         strafe_FR_X = 0;
@@ -234,16 +264,16 @@ public class a_use_this_teleop extends LinearOpMode {
                 else {
                     if (gamepad1.left_stick_x < -0.1) {
                         // right strafe
-                        strafe_FL_X = gamepad1.left_stick_x;
-                        strafe_FR_X = -gamepad1.left_stick_x;
-                        strafe_BL_X = -gamepad1.left_stick_x;
-                        strafe_BR_X = gamepad1.left_stick_x;
+                        strafe_FL_X = gamepad1.left_stick_x * normalPower;
+                        strafe_FR_X = -gamepad1.left_stick_x * normalPower;
+                        strafe_BL_X = -gamepad1.left_stick_x * normalPower;
+                        strafe_BR_X = gamepad1.left_stick_x * normalPower;
                     } else if (gamepad1.left_stick_x > 0.1) {
                         // left strafe
-                        strafe_FL_X = gamepad1.left_stick_x;
-                        strafe_FR_X = -gamepad1.left_stick_x;
-                        strafe_BL_X = -gamepad1.left_stick_x;
-                        strafe_BR_X = gamepad1.left_stick_x;
+                        strafe_FL_X = gamepad1.left_stick_x * normalPower;
+                        strafe_FR_X = -gamepad1.left_stick_x * normalPower;
+                        strafe_BL_X = -gamepad1.left_stick_x * normalPower;
+                        strafe_BR_X = gamepad1.left_stick_x * normalPower;
                     } else {
                         strafe_FL_X = 0;
                         strafe_FR_X = 0;
@@ -254,7 +284,7 @@ public class a_use_this_teleop extends LinearOpMode {
 
 
 
-                if (gamepad1.right_trigger > 0.1 && gamepad1.a) {
+                if (gamepad1.right_trigger > 0.1 && gamepad1.a) { // in the future we should use the IMU sensor!
                     // Start the 180-degree turn
                     turn180 = true;
                     turn180_timer = System.currentTimeMillis();

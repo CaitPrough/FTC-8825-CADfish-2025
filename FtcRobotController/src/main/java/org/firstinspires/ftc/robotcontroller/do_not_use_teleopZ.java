@@ -7,7 +7,7 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
 
-@TeleOp(name = "teleopZ")
+@TeleOp(name = "z_do_use_teleopZ")
 public class do_not_use_teleopZ extends LinearOpMode {
 
     public DcMotor FL;

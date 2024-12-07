@@ -18,8 +18,8 @@ import org.openftc.easyopencv.OpenCvCamera;
 
 import java.util.List;
 
-@Autonomous(name = "blue_move_right_auto_test")
-public class blue_move_right_corner extends LinearOpMode {
+@Autonomous(name = "delay_blue_move_right_auto")
+public class delay_blue_move_right_corner extends LinearOpMode {
     TouchSensor button;
     public DcMotor FL;
     public DcMotor BL;
@@ -106,7 +106,7 @@ public class blue_move_right_corner extends LinearOpMode {
             evelation_hold_pos = elevation.getCurrentPosition(); // bad code lol
             visionPortal.resumeStreaming();
 
-
+            sleep(10000);
             strafe_power = 0.35f;
             strafe_FL_X = -strafe_power;
             strafe_FR_X = strafe_power;
@@ -116,11 +116,12 @@ public class blue_move_right_corner extends LinearOpMode {
             FR.setPower(driveSpeed * strafe_FR_X);
             BL.setPower(driveSpeed * strafe_BL_X);
             BR.setPower(driveSpeed * strafe_BR_X);
-            sleep(3500);
+            sleep(5000);
             strafe_FL_X = 0;
             strafe_FR_X = 0;
             strafe_BL_X = 0;
             strafe_BR_X = 0;
+
 
             FL.setPower(driveSpeed * (turn_FL_X + strafe_FL_X + strafe_FL_Y));
             FR.setPower(driveSpeed * (turn_FR_X + strafe_FR_X + strafe_FR_Y));
