@@ -73,6 +73,7 @@ public class a_use_this_teleop extends LinearOpMode {
         boolean turn180 = false;
         long turn180_timer = 0;
 
+
         FL = hardwareMap.get(DcMotor.class, "leftfront");
         BL = hardwareMap.get(DcMotor.class, "leftback");
         FR = hardwareMap.get(DcMotor.class, "rightfront");
@@ -106,6 +107,10 @@ public class a_use_this_teleop extends LinearOpMode {
             visionPortal.resumeStreaming();
 
             while (opModeIsActive()) {
+
+
+
+
                 telemetry.addData("leftstickX", gamepad1.left_stick_x);
                 telemetry.addData("leftstickY", gamepad1.left_stick_y);
                 telemetry.addData("rightstickX", gamepad1.right_stick_x);
@@ -485,16 +490,40 @@ public class a_use_this_teleop extends LinearOpMode {
                 }
 
 
+
+                boolean aprilTagDetected = false;
+                List<AprilTagDetection> currentDetections = aprilTag.getDetections();
+
+                for (AprilTagDetection detection : currentDetections) {
+                    if (detection.metadata != null) {
+                        // If AprilTag is detected and meets yaw requirement
+                   //     if (detection.ftcPose.yaw >= 0) {
+                            // Override with AprilTag-based movement
+                     //       turn_FL_X = -0.5f;
+                         //   turn_FR_X = 0.5f;
+                       //     turn_BL_X = -0.5f;
+                           // turn_BR_X = 0.5f;
+                          //  aprilTagDetected = true;
+                           // break;
+                   //     }
+                    }
+                }
+
+
+
+
+
                 FL.setPower(driveSpeed * (turn_FL_X + strafe_FL_X + strafe_FL_Y));
                 FR.setPower(driveSpeed * (turn_FR_X + strafe_FR_X + strafe_FR_Y));
                 BL.setPower(driveSpeed * (turn_BL_X + strafe_BL_X + strafe_BL_Y));
                 BR.setPower(driveSpeed * (turn_BR_X + strafe_BR_X + strafe_BR_Y));
 
 
-                telemetryAprilTag();
-                sleep(20);
-
+                // Update telemetry
+                telemetry.addData("AprilTag Movement Active", aprilTagDetected);
+                telemetryAprilTag(aprilTagDetected);
                 telemetry.update();
+                sleep(20);
             }
         }
     }
@@ -519,12 +548,10 @@ public class a_use_this_teleop extends LinearOpMode {
         }
     }   // end method initAprilTag()
 
-    private void telemetryAprilTag() {
-
+    public boolean telemetryAprilTag(boolean apriltag) {
         List<AprilTagDetection> currentDetections = aprilTag.getDetections();
         telemetry.addData("# AprilTags Detected", currentDetections.size());
 
-        // Step through the list of detections and display info for each one.
         for (AprilTagDetection detection : currentDetections) {
             if (detection.metadata != null) {
                 telemetry.addLine(String.format("\n==== (ID %d) %s", detection.id, detection.metadata.name));
@@ -535,15 +562,12 @@ public class a_use_this_teleop extends LinearOpMode {
                 telemetry.addLine(String.format("\n==== (ID %d) Unknown", detection.id));
                 telemetry.addLine(String.format("Center %6.0f %6.0f   (pixels)", detection.center.x, detection.center.y));
             }
-        }   // end for() loop
+        }
 
-        // Add "key" information to telemetry
         telemetry.addLine("\nkey:\nXYZ = X (Right), Y (Forward), Z (Up) dist.");
         telemetry.addLine("PRY = Pitch, Roll & Yaw (XYZ Rotation)");
         telemetry.addLine("RBE = Range, Bearing & Elevation");
 
-    }   // end method telemetryAprilTag()
-
-
-
-} // end class
+        return apriltag;
+    }
+}
