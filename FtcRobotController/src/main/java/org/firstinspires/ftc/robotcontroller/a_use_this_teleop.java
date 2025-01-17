@@ -72,6 +72,7 @@ public class a_use_this_teleop extends LinearOpMode {
         boolean slide_set = false;
         boolean turn180 = false;
         long turn180_timer = 0;
+        boolean run_apriltag_assist = false;
 
 
         FL = hardwareMap.get(DcMotor.class, "leftfront");
@@ -494,18 +495,23 @@ public class a_use_this_teleop extends LinearOpMode {
                 boolean aprilTagDetected = false;
                 List<AprilTagDetection> currentDetections = aprilTag.getDetections();
 
-                for (AprilTagDetection detection : currentDetections) {
-                    if (detection.metadata != null) {
-                        // If AprilTag is detected and meets yaw requirement
-                   //     if (detection.ftcPose.yaw >= 0) {
-                            // Override with AprilTag-based movement
-                     //       turn_FL_X = -0.5f;
-                         //   turn_FR_X = 0.5f;
-                       //     turn_BL_X = -0.5f;
-                           // turn_BR_X = 0.5f;
-                          //  aprilTagDetected = true;
-                           // break;
-                   //     }
+                if (run_apriltag_assist == true){ // set at line 75
+                    for (AprilTagDetection detection : currentDetections) {
+                        if (detection.metadata != null) {
+                            if (detection.id == 1){ // TODO, SET THE ID!!!!
+                                // If AprilTag is detected and meets yaw req
+                                //     if (detection.ftcPose.yaw >= 0) {
+                                // Override with AprilTag-based movement
+                                //       turn_FL_X = -0.5f;
+                                //   turn_FR_X = 0.5f;
+                                //     turn_BL_X = -0.5f;
+                                // turn_BR_X = 0.5f;
+                                //  aprilTagDetected = true;
+                                // break;
+                                //     }
+                            }
+
+                        }
                     }
                 }
 
