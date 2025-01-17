@@ -517,8 +517,6 @@ public class a_use_this_teleop extends LinearOpMode {
 
 
 
-
-
                 FL.setPower(driveSpeed * (turn_FL_X + strafe_FL_X + strafe_FL_Y));
                 FR.setPower(driveSpeed * (turn_FR_X + strafe_FR_X + strafe_FR_Y));
                 BL.setPower(driveSpeed * (turn_BL_X + strafe_BL_X + strafe_BL_Y));
