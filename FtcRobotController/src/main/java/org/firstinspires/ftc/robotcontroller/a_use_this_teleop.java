@@ -73,6 +73,9 @@ public class a_use_this_teleop extends LinearOpMode {
         boolean turn180 = false;
         long turn180_timer = 0;
         boolean run_apriltag_assist = false;
+        boolean linedUp = false;
+        long forwardStartTime = 0;
+        boolean isMovingForward = false;
 
 
         FL = hardwareMap.get(DcMotor.class, "leftfront");
@@ -110,8 +113,6 @@ public class a_use_this_teleop extends LinearOpMode {
             while (opModeIsActive()) {
 
 
-
-
                 telemetry.addData("leftstickX", gamepad1.left_stick_x);
                 telemetry.addData("leftstickY", gamepad1.left_stick_y);
                 telemetry.addData("rightstickX", gamepad1.right_stick_x);
@@ -119,14 +120,11 @@ public class a_use_this_teleop extends LinearOpMode {
                 //lower power for more precise robot movement
 
 
-
-                if (gamepad1.left_trigger > 0.1){ // i dont love this but it reduces code and if statements so eh
+                if (gamepad1.left_trigger > 0.1) { // i dont love this but it reduces code and if statements so eh
                     normalPower = 0.3f;
-                }
-                else {
+                } else {
                     normalPower = 0.7f;
                 }
-
 
 
                 if (gamepad1.right_trigger < 0.1) { // Normal driving mode
@@ -184,9 +182,7 @@ public class a_use_this_teleop extends LinearOpMode {
                 }
 
 
-
-
-                if (gamepad1.right_trigger > 0.1){ //REVERSE driving
+                if (gamepad1.right_trigger > 0.1) { //REVERSE driving
                     if (gamepad1.left_stick_y > 0.1) {
                         // backward
                         strafe_BR_Y = -gamepad1.left_stick_y * normalPower;
@@ -213,7 +209,7 @@ public class a_use_this_teleop extends LinearOpMode {
                         turn_FR_X = gamepad1.right_stick_x * normalPower;
                         turn_BL_X = -gamepad1.right_stick_x * normalPower;
                         turn_BR_X = gamepad1.right_stick_x * normalPower;
-                    } else if (!(gamepad1.left_stick_y > 0.1) || !(gamepad1.left_stick_y < 0.1)){
+                    } else if (!(gamepad1.left_stick_y > 0.1) || !(gamepad1.left_stick_y < 0.1)) {
                         turn_FL_X = 0;
                         turn_FR_X = 0;
                         turn_BL_X = 0;
@@ -223,8 +219,7 @@ public class a_use_this_teleop extends LinearOpMode {
                         strafe_BL_Y = 0;
                         strafe_BR_Y = 0;
 
-                    }
-                    else {
+                    } else {
                         turn_FL_X = 0;
                         turn_FR_X = 0;
                         turn_BL_X = 0;
@@ -235,15 +230,6 @@ public class a_use_this_teleop extends LinearOpMode {
                         strafe_BR_Y = 0;
                     }
                 }
-
-
-
-
-
-
-
-
-
 
 
                 if (gamepad1.right_trigger < 0.1) {
@@ -266,8 +252,7 @@ public class a_use_this_teleop extends LinearOpMode {
                         strafe_BL_X = 0;
                         strafe_BR_X = 0;
                     }
-                }
-                else {
+                } else {
                     if (gamepad1.left_stick_x < -0.1) {
                         // right strafe
                         strafe_FL_X = gamepad1.left_stick_x * normalPower;
@@ -287,7 +272,6 @@ public class a_use_this_teleop extends LinearOpMode {
                         strafe_BR_X = 0;
                     }
                 }
-
 
 
                 if (gamepad1.right_trigger > 0.1 && gamepad1.a) { // in the future we should use the IMU sensor!
@@ -316,12 +300,6 @@ public class a_use_this_teleop extends LinearOpMode {
                 }
 
 
-
-
-
-
-
-
                 // elevation (formerly pitch)
                 if (gamepad1.left_bumper) {
                     // Move down
@@ -346,7 +324,7 @@ public class a_use_this_teleop extends LinearOpMode {
                         elevation.setTargetPosition(evelation_hold_pos);
                         elevation.setMode(DcMotor.RunMode.RUN_TO_POSITION);
                         elevation.setPower(0.2); // Small power to maintain position
-                    } else {
+                    } else if (!linedUp) {
                         // If lock expired or no lock, stop movement
                         elevation.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
                         elevation.setPower(0);
@@ -491,46 +469,121 @@ public class a_use_this_teleop extends LinearOpMode {
                 }
 
 
-
                 boolean aprilTagDetected = false;
                 List<AprilTagDetection> currentDetections = aprilTag.getDetections();
 
-                if (run_apriltag_assist == true){ // set at line 75
-                    for (AprilTagDetection detection : currentDetections) {
-                        if (detection.metadata != null) {
-                            if (detection.id == 1){ // TODO, SET THE ID!!!!
-                                // If AprilTag is detected and meets yaw req
-                                //     if (detection.ftcPose.yaw >= 0) {
-                                // Override with AprilTag-based movement
-                                //       turn_FL_X = -0.5f;
-                                //   turn_FR_X = 0.5f;
-                                //     turn_BL_X = -0.5f;
-                                // turn_BR_X = 0.5f;
-                                //  aprilTagDetected = true;
-                                // break;
-                                //     }
-                            }
 
+                if (gamepad1.start) {
+                    run_apriltag_assist = true;
+                    linedUp = false;
+                }
+
+                if (run_apriltag_assist) {
+                    boolean tagFound = false;
+                    for (AprilTagDetection detection : currentDetections) {
+                        if (detection.metadata != null && (detection.id == 16 || detection.id == 13)) {
+                            tagFound = true;
+                            double bearing = detection.ftcPose.bearing;
+
+                            // Debug output
+                            telemetry.addData("Bearing", bearing);
+
+                            // Use lower power and tighter threshold
+                            float turnPower = (float) Math.min(0.15f, Math.abs(bearing) * 0.05f);
+                            // Ensure minimum power to overcome friction
+                            if (turnPower < 0.08f) turnPower = 0.08f;
+
+                            if (Math.abs(bearing) < 1.5) {  // Tighter threshold
+                                linedUp = true;
+                                run_apriltag_assist = false;
+                                turn_FL_X = turn_FR_X = turn_BL_X = turn_BR_X = 0;
+                            } else {
+                                // Bearing is positive when tag is to the right
+                                // So when bearing is positive, we need to turn right
+                                turnPower *= (bearing > 0) ? 1 : -1;
+                                turn_FL_X = -turnPower;  // Note the negatives here
+                                turn_FR_X = turnPower;
+                                turn_BL_X = -turnPower;
+                                turn_BR_X = turnPower;
+                            }
+                            telemetry.addData("Turn Power", turnPower);
+                            break;
+                        }
+                    }
+
+                    if (!tagFound) {
+                        // Don't stop moving if no tag found - keep last command
+                        // This prevents jerky motion when tag detection drops briefly
+                        if (tagFound) {  // Only stop if we haven't seen a tag for a while
+                            turn_FL_X = turn_FR_X = turn_BL_X = turn_BR_X = 0;
                         }
                     }
                 }
 
 
+                if (linedUp) {
+                    if (tilt.getPosition() <= 0.4) {
+                        tilt.setPosition(0.4);
+                        sleep(50);
+                    }
 
-                FL.setPower(driveSpeed * (turn_FL_X + strafe_FL_X + strafe_FL_Y));
-                FR.setPower(driveSpeed * (turn_FR_X + strafe_FR_X + strafe_FR_Y));
-                BL.setPower(driveSpeed * (turn_BL_X + strafe_BL_X + strafe_BL_Y));
-                BR.setPower(driveSpeed * (turn_BR_X + strafe_BR_X + strafe_BR_Y));
+                    if (!isMovingForward) {
+                        forwardStartTime = System.currentTimeMillis();
+                        isMovingForward = true;
+                        // Initialize elevation movement
+                        elevation.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+                        elevation_locked = false;
+                    }
+
+                    long currentTime = System.currentTimeMillis();
+                    long elapsedTime = currentTime - forwardStartTime;
+
+                    // Forward movement (0-1000ms)
+                    if (elapsedTime < 2000) {
+                        turn_FL_X = turn_FR_X = turn_BL_X = turn_BR_X = 0.1f;
+                    } else {
+                        turn_FL_X = turn_FR_X = turn_BL_X = turn_BR_X = 0;
+                    }
+
+                    // Elevation control (0-2700ms)
+                    if (elapsedTime < 2550) {
+                        if (!elevation_locked) {
+                            elevation.setPower(-1);  // Move up
+                        }
+                    } else if (!elevation_locked) {
+                        // Only capture position once when transitioning to locked state
+                        evelation_hold_pos = elevation.getCurrentPosition();
+                        elevation.setTargetPosition(evelation_hold_pos);
+                        elevation.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                        elevation.setPower(0.2);
+                        elevation_locked = true;
+                        lock_start_time = currentTime;
+                    }
+
+                    // Check if we should end the sequence
+                    if (elevation_locked && (currentTime - lock_start_time >= 5000) || gamepad1.left_bumper) {
+                        elevation.setPower(0);
+                        elevation_locked = false;
+                        linedUp = false;
+                        run_apriltag_assist = false;
+                        isMovingForward = false;
+                    }
+                }
+
+                    FL.setPower(driveSpeed * (turn_FL_X + strafe_FL_X + strafe_FL_Y));
+                    FR.setPower(driveSpeed * (turn_FR_X + strafe_FR_X + strafe_FR_Y));
+                    BL.setPower(driveSpeed * (turn_BL_X + strafe_BL_X + strafe_BL_Y));
+                    BR.setPower(driveSpeed * (turn_BR_X + strafe_BR_X + strafe_BR_Y));
 
 
-                // Update telemetry
-                telemetry.addData("AprilTag Movement Active", aprilTagDetected);
-                telemetryAprilTag(aprilTagDetected);
-                telemetry.update();
-                sleep(20);
+                    // Update telemetry
+                    telemetry.addData("AprilTag Movement Active", aprilTagDetected);
+                    telemetryAprilTag(aprilTagDetected);
+                    telemetry.update();
+                    sleep(20);
+                }
             }
         }
-    }
 
 
     public void initAprilTag() {
