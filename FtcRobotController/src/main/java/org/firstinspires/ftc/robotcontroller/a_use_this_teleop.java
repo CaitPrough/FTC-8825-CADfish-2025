@@ -116,6 +116,7 @@ public class a_use_this_teleop extends LinearOpMode {
                 telemetry.addData("leftstickX", gamepad1.left_stick_x);
                 telemetry.addData("leftstickY", gamepad1.left_stick_y);
                 telemetry.addData("rightstickX", gamepad1.right_stick_x);
+                telemetry.addData("yButton", gamepad1.y);
                 // telemetry.update();
                 //lower power for more precise robot movement
 
