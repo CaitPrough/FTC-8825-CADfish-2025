@@ -274,12 +274,15 @@ public class a_use_this_teleop extends LinearOpMode {
                     }
                 }
 
-
+/*
+            theron has requested this no longer exists
                 if (gamepad1.right_trigger > 0.1 && gamepad1.a) { // in the future we should use the IMU sensor!
                     // Start the 180-degree turn
                     turn180 = true;
                     turn180_timer = System.currentTimeMillis();
                 }
+
+
 
                 if (turn180) {
                     long elapsedTime = System.currentTimeMillis() - turn180_timer;
@@ -298,7 +301,7 @@ public class a_use_this_teleop extends LinearOpMode {
                         turn_BL_X = 0;
                         turn_BR_X = 0;
                     }
-                }
+                } */
 
 
                 // elevation (formerly pitch)
