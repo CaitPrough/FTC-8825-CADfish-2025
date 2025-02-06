@@ -426,7 +426,7 @@ public class a_use_this_teleop extends LinearOpMode {
                 }
 
                 if (unload_on_button_lock) {
-                    if ((System.currentTimeMillis() - unroll_start_time) > 3000) {
+                    if ((System.currentTimeMillis() - unroll_start_time) > 1800) {
                         roller.setPower(0);  // Stop roller after 2 seconds
                         unload_on_button_lock = false;
                         sequenceStarted = false;  // Reset sequence

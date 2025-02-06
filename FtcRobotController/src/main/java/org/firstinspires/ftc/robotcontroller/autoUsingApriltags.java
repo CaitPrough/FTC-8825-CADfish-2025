@@ -13,67 +13,138 @@ import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.vision.VisionPortal;
 import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
 import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
-import org.opencv.features2d.SimpleBlobDetector;
-import org.openftc.easyopencv.OpenCvCamera;
 
 import java.util.List;
 
 @Autonomous(name = "autoUsingApriltags")
 public class autoUsingApriltags extends LinearOpMode {
-    TouchSensor button;
-    public DcMotor FL;
-    public DcMotor BL;
-    public DcMotor FR;
-    public DcMotor BR;
-    public DcMotor elevation;
-    public DcMotor slide;
-    public CRServo roller;
-    public Servo tilt;
-    public Servo dump;
-    // public Servo launch;
+    private TouchSensor button;
+    private DcMotor FL;
+    private DcMotor BL;
+    private DcMotor FR;
+    private DcMotor BR;
+    private DcMotor elevation;
+    private DcMotor slide;
+    private CRServo roller;
+    private Servo tilt;
+    private Servo dump;
 
+    private float normalPower = 0.7f;
+    private final float lowerPower = 0.4f;
 
-    float normalPower = 0.7f;
-    final float lowerPower = 0.4f;
+    private boolean run_apriltag_assist = true;
 
-    private static final boolean USE_WEBCAM = true;  // true for webcam, false for phone camera
+    private static final boolean USE_WEBCAM = true;
     private AprilTagProcessor aprilTag;
-    private SimpleBlobDetector blobDetector;
     private VisionPortal visionPortal;
-    private OpenCvCamera camera;
+    private List<AprilTagDetection> currentDetections;
 
     @Override
     public void runOpMode() {
-        float turn_FL_X = 0;
-        float turn_BR_X = 0;
-        float turn_FR_X = 0;
-        float turn_BL_X = 0;
-        float strafe_FR_X = 0;
-        float strafe_BL_X = 0;
-        float strafe_BR_X = 0;
-        float strafe_FL_X = 0;
-        float strafe_FL_Y = 0;
-        float strafe_FR_Y = 0;
-        float strafe_BL_Y = 0;
-        float strafe_BR_Y = 0;
-        double driveSpeed = 1.0;
-        float strafe_power = 0;
-        int evelation_hold_pos;
-        boolean elevation_locked = false;
-        long lock_start_time = System.currentTimeMillis();
-        boolean buttonHitRecently = false;
-        long buttonHitTime = 0;
-        int HOLD_DURATION = 700;
-        double HOLDING_POWER = 0.2;
-        boolean isPositionSet = false;
-        long positionHoldStartTime = 0;
-        boolean unload_on_button_lock = false;
-        long unroll_start_time = 0;
-        boolean sequenceStarted = false;
-        boolean slide_set = false;
-        boolean turn180 = false;
-        long turn180_timer = 0;
+        // Initialize hardware
+        initializeHardware();
+        initAprilTag();
 
+        waitForStart();
+        visionPortal.resumeStreaming();
+        if (opModeIsActive()) {
+            // Set motor directions and behaviors
+            setMotorConfigurations();
+
+            int elevationHoldPos = elevation.getCurrentPosition();
+
+            // Ensure vision portal is streaming
+
+
+
+
+            // First movement sequence
+            move(1, 0.5, 0.5);
+            strafe(1.8, 0.5, -0.5, -0.5, 0.5);
+            move(0.5, 0.5, -0.5);
+            if (tilt.getPosition() <= 0.4) {
+                tilt.setPosition(0.4);
+                sleep(50);
+            }
+
+
+
+
+            move(0.5, -0.5, -0.5);
+
+
+            // Now start the AprilTag detection sequence
+            boolean alignmentComplete = false;
+
+            while (opModeIsActive() && !alignmentComplete && run_apriltag_assist) {
+                // Get fresh AprilTag detections
+                currentDetections = aprilTag.getDetections();
+
+                // Debug output
+                telemetry.addData("Number of detections", currentDetections.size());
+
+                if (currentDetections != null && !currentDetections.isEmpty()) {
+                    boolean tagFound = false;
+
+                    for (AprilTagDetection detection : currentDetections) {
+                        if (detection != null && detection.metadata != null &&
+                                (detection.id == 16 || detection.id == 13)) {
+
+                            tagFound = true;
+                            double bearing = detection.ftcPose.bearing;
+
+                            telemetry.addData("Tag ID", detection.id);
+                            telemetry.addData("Bearing", bearing);
+
+                            // If we're close to aligned
+                            if (Math.abs(bearing) < 1.5) {
+                                stopMotors();
+                                alignmentComplete = true;
+                                break;
+                            }
+
+                            // Calculate turn power
+                            float turnPower = (float) Math.min(0.15f, Math.abs(bearing) * 0.05f);
+                            if (turnPower < 0.08f) turnPower = 0.08f;
+                            turnPower *= (bearing > 0) ? 1 : -1;
+
+                            // Apply turn power
+                            setTurnPowers(turnPower);
+                            telemetry.addData("Turn Power", turnPower);
+                        }
+                    }
+
+                    if (!tagFound) {
+                        telemetry.addLine("No target tags found");
+                        stopMotors();
+                    }
+                } else {
+                    telemetry.addLine("No detections");
+                    stopMotors();
+                }
+
+                telemetryAprilTag();
+                telemetry.update();
+
+                // Small delay to prevent CPU overload
+                sleep(20);
+            }
+
+            // Stop all motors after alignment
+            stopMotors();
+
+            if (alignmentComplete) {
+                telemetry.addLine("Alignment Complete!");
+            } else {
+                telemetry.addLine("Alignment Failed or Interrupted");
+            }
+            telemetry.update();
+
+            sleep(1000); // Pause to show final status
+        }
+    }
+
+    private void initializeHardware() {
         FL = hardwareMap.get(DcMotor.class, "leftfront");
         BL = hardwareMap.get(DcMotor.class, "leftback");
         FR = hardwareMap.get(DcMotor.class, "rightfront");
@@ -83,156 +154,135 @@ public class autoUsingApriltags extends LinearOpMode {
         tilt = hardwareMap.get(Servo.class, "tilt");
         roller = hardwareMap.get(CRServo.class, "roller");
         dump = hardwareMap.get(Servo.class, "dump");
-        // launch = hardwareMap.get(Servo.class, "launch");
-
-
         button = hardwareMap.get(TouchSensor.class, "button");
+    }
 
-        initAprilTag();
-        waitForStart();
-        if (opModeIsActive()) {
+    private void setMotorConfigurations() {
+        elevation.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        slide.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
-            elevation.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-            slide.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-            FL.setDirection(DcMotorSimple.Direction.FORWARD);
-            BL.setDirection(DcMotorSimple.Direction.FORWARD);
-            FR.setDirection(DcMotorSimple.Direction.REVERSE);
-            BR.setDirection(DcMotorSimple.Direction.REVERSE);
-            FL.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-            FR.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-            BL.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-            BR.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        FL.setDirection(DcMotorSimple.Direction.FORWARD);
+        BL.setDirection(DcMotorSimple.Direction.FORWARD);
+        FR.setDirection(DcMotorSimple.Direction.REVERSE);
+        BR.setDirection(DcMotorSimple.Direction.REVERSE);
 
-            evelation_hold_pos = elevation.getCurrentPosition(); // bad code lol
+        FL.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        FR.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        BL.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        BR.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+    }
 
+    private void handleAprilTagAssist() {
+        boolean tagFound = false;
+        for (AprilTagDetection detection : currentDetections) {
+            if (detection.metadata != null && (detection.id == 16 || detection.id == 13)) {
+                tagFound = true;
+                double bearing = detection.ftcPose.bearing;
 
+                telemetry.addData("Bearing", bearing);
 
-            move(1, 0.5, 0.5);
-            move(2, 0.5, -0.5);
-            visionPortal.resumeStreaming();
+                float turnPower = (float) Math.min(0.15f, Math.abs(bearing) * 0.05f);
+                if (turnPower < 0.08f) turnPower = 0.08f;
 
+                if (Math.abs(bearing) < 1.5) {
+                    stopMotors();
+                    return;
+                }
 
-            telemetry.update();
-
+                turnPower *= (bearing > 0) ? 1 : -1;
+                setTurnPowers(turnPower);
+                telemetry.addData("Turn Power", turnPower);
+                break;
+            }
         }
+    }
+
+    private void stopMotors() {
+        FL.setPower(0);
+        FR.setPower(0);
+        BL.setPower(0);
+        BR.setPower(0);
+    }
+
+    private void setTurnPowers(float power) {
+        FL.setPower(-power);
+        FR.setPower(power);
+        BL.setPower(-power);
+        BR.setPower(power);
     }
 
     public void move(double distance, double left_power, double right_power) {
-        //532 is equivalent to 1ft
-        distance = distance * 532;
-        int edistance = Math.toIntExact(Math.round(distance));
-        FL.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        FR.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        BL.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        BR.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        FL.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        FR.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        BL.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        BR.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        if (left_power > 0) {
-            FL.setTargetPosition(-edistance);
-            BL.setTargetPosition(-edistance);
-        } else {
-            FL.setTargetPosition(edistance);
-            BL.setTargetPosition(edistance);
-        }
-        if (right_power > 0) {
-            FR.setTargetPosition(-edistance);
-            BR.setTargetPosition(-edistance);
-        } else {
-            FR.setTargetPosition(edistance);
-            BR.setTargetPosition(edistance);
-        }
-        FL.setPower(left_power);
-        BL.setPower(left_power);
-        FR.setPower(right_power);
-        BR.setPower(right_power);
-        FL.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        BL.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        FR.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        BR.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        while (FL.isBusy()) {
-            telemetry.addData("busy", distance);
+        int edistance = (int)(distance * 532); // 532 ticks per foot
+
+        setMotorModes(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        setTargetPositions(edistance, left_power, right_power);
+        setMotorPowers(left_power, right_power);
+        setMotorModes(DcMotor.RunMode.RUN_TO_POSITION);
+
+        while (FL.isBusy() && opModeIsActive()) {
+            telemetry.addData("Moving", distance);
             telemetry.update();
         }
-        FL.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        BL.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        FR.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        BR.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        FL.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        FR.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        BL.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        BR.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        FL.setPower(0);
-        BL.setPower(0);
-        FR.setPower(0);
-        BR.setPower(0);
+
+        stopAndResetMotors();
         sleep(150);
     }
 
-    private void strafe(double distance, double fL, double fR, double bL, double bR) {
-        //532 is equivalent to 1ft
-        distance = distance * 532;
-        int edistance = Math.toIntExact(Math.round(distance));
-        FL.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        FR.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        BL.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        BR.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        FL.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        FR.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        BL.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        BR.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        if (fL > 0) {
-            FL.setTargetPosition(edistance);
-        } else {
-            FL.setTargetPosition(-edistance);
-        }
-        if (fR > 0) {
-            FR.setTargetPosition(edistance);
-        } else {
-            FR.setTargetPosition(-edistance);
-        }
-        if (bL > 0) {
-            BL.setTargetPosition(edistance);
-        } else {
-            BL.setTargetPosition(-edistance);
-        }
-        if (bR > 0) {
-            BL.setTargetPosition(edistance);
-        } else {
-            BL.setTargetPosition(-edistance);
-        }
-        FL.setPower(fL);
-        FR.setPower(fR);
-        BL.setPower(bL);
-        BR.setPower(bR);
-        FL.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        BL.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        FR.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        BR.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        while (FL.isBusy()) {
-            telemetry.addData("busy", distance);
+    private void setMotorModes(DcMotor.RunMode mode) {
+        FL.setMode(mode);
+        FR.setMode(mode);
+        BL.setMode(mode);
+        BR.setMode(mode);
+    }
+
+    private void setTargetPositions(int distance, double left_power, double right_power) {
+        FL.setTargetPosition(left_power > 0 ? -distance : distance);
+        BL.setTargetPosition(left_power > 0 ? -distance : distance);
+        FR.setTargetPosition(right_power > 0 ? -distance : distance);
+        BR.setTargetPosition(right_power > 0 ? -distance : distance);
+    }
+
+    private void setMotorPowers(double left_power, double right_power) {
+        FL.setPower(Math.abs(left_power));
+        BL.setPower(Math.abs(left_power));
+        FR.setPower(Math.abs(right_power));
+        BR.setPower(Math.abs(right_power));
+    }
+
+    private void stopAndResetMotors() {
+        setMotorModes(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        stopMotors();
+    }
+
+    public void strafe(double distance, double fL, double fR, double bL, double bR) {
+        int edistance = (int)(distance * 532);
+
+        setMotorModes(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+
+        FL.setTargetPosition(fL > 0 ? edistance : -edistance);
+        FR.setTargetPosition(fR > 0 ? edistance : -edistance);
+        BL.setTargetPosition(bL > 0 ? edistance : -edistance);
+        BR.setTargetPosition(bR > 0 ? edistance : -edistance);
+
+        FL.setPower(Math.abs(fL));
+        FR.setPower(Math.abs(fR));
+        BL.setPower(Math.abs(bL));
+        BR.setPower(Math.abs(bR));
+
+        setMotorModes(DcMotor.RunMode.RUN_TO_POSITION);
+
+        while (FL.isBusy() && opModeIsActive()) {
+            telemetry.addData("Strafing", distance);
             telemetry.update();
         }
-        FL.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        BL.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        FR.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        BR.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        FL.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        FR.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        BL.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        BR.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        FL.setPower(0);
-        BL.setPower(0);
-        FR.setPower(0);
-        BR.setPower(0);
+
+        stopAndResetMotors();
         sleep(250);
     }
-    public void initAprilTag() {
-        // Create the AprilTag processor the easy way.
+
+    private void initAprilTag() {
         aprilTag = AprilTagProcessor.easyCreateWithDefaults();
 
-        // Create the vision portal using the builder
         if (USE_WEBCAM) {
             visionPortal = new VisionPortal.Builder()
                     .setCamera(hardwareMap.get(WebcamName.class, "webcam1"))
@@ -245,14 +295,11 @@ public class autoUsingApriltags extends LinearOpMode {
             visionPortal = VisionPortal.easyCreateWithDefaults(
                     BuiltinCameraDirection.BACK, aprilTag);
         }
-    }   // end method initAprilTag()
+    }
 
     private void telemetryAprilTag() {
-
-        List<AprilTagDetection> currentDetections = aprilTag.getDetections();
         telemetry.addData("# AprilTags Detected", currentDetections.size());
 
-        // Step through the list of detections and display info for each one.
         for (AprilTagDetection detection : currentDetections) {
             if (detection.metadata != null) {
                 telemetry.addLine(String.format("\n==== (ID %d) %s", detection.id, detection.metadata.name));
@@ -263,15 +310,10 @@ public class autoUsingApriltags extends LinearOpMode {
                 telemetry.addLine(String.format("\n==== (ID %d) Unknown", detection.id));
                 telemetry.addLine(String.format("Center %6.0f %6.0f   (pixels)", detection.center.x, detection.center.y));
             }
-        }   // end for() loop
+        }
 
-        // Add "key" information to telemetry
         telemetry.addLine("\nkey:\nXYZ = X (Right), Y (Forward), Z (Up) dist.");
         telemetry.addLine("PRY = Pitch, Roll & Yaw (XYZ Rotation)");
         telemetry.addLine("RBE = Range, Bearing & Elevation");
-
-    }   // end method telemetryAprilTag()
-
-
-
-} // end class
+    }
+}
