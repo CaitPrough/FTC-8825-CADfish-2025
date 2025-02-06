@@ -60,18 +60,23 @@ public class autoUsingApriltags extends LinearOpMode {
 
             // First movement sequence
             move(1, 0.5, 0.5);
-            strafe(1.8, 0.5, -0.5, -0.5, 0.5);
+            strafe(1.75, 0.5, -0.5, -0.5, 0.5);
             move(0.5, 0.5, -0.5);
             if (tilt.getPosition() <= 0.4) {
                 tilt.setPosition(0.4);
                 sleep(50);
             }
+            sleep(200);
+            elevation.setPower(-1);  // Move up
+            sleep(2500);
+            elevation.setPower(-0.2);
 
+            move(0.7, -0.5, -0.5);
 
-
-
-            move(0.5, -0.5, -0.5);
-
+            dump.setPosition(0.3);
+            sleep(1500);
+            elevation.setPower(0);
+            dump.setPosition(0.45);
 
             // Now start the AprilTag detection sequence
             boolean alignmentComplete = false;
