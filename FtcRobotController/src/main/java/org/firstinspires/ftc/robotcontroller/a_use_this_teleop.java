@@ -110,6 +110,8 @@ public class a_use_this_teleop extends LinearOpMode {
             evelation_hold_pos = elevation.getCurrentPosition(); // bad code lol
             visionPortal.resumeStreaming();
 
+            elevation.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+
             while (opModeIsActive()) {
 
 
@@ -435,7 +437,7 @@ public class a_use_this_teleop extends LinearOpMode {
                     }
                 }
 
-
+                telemetry.addData("Raise Position", elevation.getCurrentPosition());
                 telemetry.addData("Tilt Position", tilt.getPosition());
                 telemetry.addData("Button Pressed", button.isPressed());
                 telemetry.addData("Motor Position", slide.getCurrentPosition());

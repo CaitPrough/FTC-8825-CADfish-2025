@@ -60,23 +60,38 @@ public class autoUsingApriltags extends LinearOpMode {
 
             // First movement sequence
             move(1, 0.5, 0.5);
-            strafe(1.75, 0.5, -0.5, -0.5, 0.5);
+            strafe(1.7, 0.5, -0.5, -0.5, 0.5);
             move(0.5, 0.5, -0.5);
             if (tilt.getPosition() <= 0.4) {
                 tilt.setPosition(0.4);
                 sleep(50);
             }
-            sleep(200);
-            elevation.setPower(-1);  // Move up
-            sleep(2500);
-            elevation.setPower(-0.2);
+            sleep(350);
+
+            elevation.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+            elevation.setTargetPosition(-5500);
+            elevation.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+            elevation.setPower(-1);
+            while (true){ // wait until we hit position, then do a motor hold
+                if (elevation.getCurrentPosition() <= -5500){
+                    elevation.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+                    elevation.setPower(-0.15);
+                    break;
+                }
+            }
 
             move(0.7, -0.5, -0.5);
+            elevation.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+            elevation.setPower(-0.05);
 
-            dump.setPosition(0.3);
+            dump.setPosition(0.3);  // -5900
             sleep(1500);
-            elevation.setPower(0);
             dump.setPosition(0.45);
+            sleep(5000);
+            elevation.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+            elevation.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
+            elevation.setPower(0);
+
 
             // Now start the AprilTag detection sequence
             boolean alignmentComplete = false;
