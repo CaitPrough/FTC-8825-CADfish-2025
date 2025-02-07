@@ -60,9 +60,13 @@ public class autoUsingApriltags extends LinearOpMode {
 
             // First movement sequence
             move(0.8, 0.5, 0.5);
-            strafe(1.7, 0.5, -0.5, -0.5, 0.5);
-            move(0.5, 0.5, -0.5);
-
+            strafe(1.75, 0.5, -0.5, -0.5, 0.5);
+            move(0.4, 0.5, -0.5);
+            if (tilt.getPosition() <= 0.4) {
+                tilt.setPosition(0.4);
+                sleep(50);
+            }
+            sleep(400);
 
             // Now start the AprilTag detection sequence
             boolean alignmentComplete = false;
@@ -118,7 +122,7 @@ public class autoUsingApriltags extends LinearOpMode {
                 telemetry.update();
 
                 // Small delay to prevent CPU overload
-                sleep(20);
+                sleep(10);
             }
 
             // Stop all motors after alignment
@@ -134,11 +138,7 @@ public class autoUsingApriltags extends LinearOpMode {
 
 
 
-            if (tilt.getPosition() <= 0.4) {
-                tilt.setPosition(0.4);
-                sleep(50);
-            }
-            sleep(400);
+
 
             elevation.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
             elevation.setTargetPosition(-5500);
@@ -163,9 +163,10 @@ public class autoUsingApriltags extends LinearOpMode {
 
             elevation.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
             elevation.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
-            elevation.setPower(0);
+            elevation.setPower(1);
 
             move(0.7, 0.5, 0.5);
+            elevation.setPower(0);
 
 
 
