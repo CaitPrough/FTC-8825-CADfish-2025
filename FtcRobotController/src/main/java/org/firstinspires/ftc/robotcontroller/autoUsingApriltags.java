@@ -161,11 +161,14 @@ public class autoUsingApriltags extends LinearOpMode {
             sleep(1100);
             dump.setPosition(0.45);
 
-            elevation.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-            elevation.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
-            elevation.setPower(1);
+
+            elevation.setTargetPosition(-500);
+            elevation.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+            elevation.setPower(0.3);
 
             move(0.7, 0.5, 0.5);
+
+            sleep(500);
             elevation.setPower(0);
 
 
