@@ -38,6 +38,10 @@ public class autoUsingApriltags extends LinearOpMode {
     private AprilTagProcessor aprilTag;
     private VisionPortal visionPortal;
     private List<AprilTagDetection> currentDetections;
+    private int old_elevation = 0;
+
+    private double wiggle_wobble = 0.3;
+
 
     @Override
     public void runOpMode() {
@@ -61,7 +65,7 @@ public class autoUsingApriltags extends LinearOpMode {
             // First movement sequence
             move(0.8, 0.5, 0.5);
             strafe(1.75, 0.5, -0.5, -0.5, 0.5);
-            move(0.4, 0.5, -0.5);
+            move(0.65, 0.5, -0.5);
             if (tilt.getPosition() <= 0.4) {
                 tilt.setPosition(0.4);
                 sleep(50);
@@ -153,7 +157,7 @@ public class autoUsingApriltags extends LinearOpMode {
                 }
             }
 
-            move(0.65, -0.5, -0.5);
+            move(0.59, -0.5, -0.5);
             elevation.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
             elevation.setPower(0);
 
@@ -162,19 +166,180 @@ public class autoUsingApriltags extends LinearOpMode {
             dump.setPosition(0.45);
 
 
-            elevation.setTargetPosition(-500);
+
+
+            move(0.70, 0.4, 0.4);
+
+            elevation.setPower(1);
+
+
+            while (true) {
+                if (elevation.getCurrentPosition() != old_elevation) {
+                    old_elevation = elevation.getCurrentPosition();
+                }
+                else {
+                    elevation.setPower(0);
+                    elevation.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+                    break;
+                }
+                sleep(20);
+            }
+
+
+
+
+
+
+            move(1.15, 0.5, 0.5);
+
+            move(1.7, -0.5, 0.5);
+            tilt.setPosition(0.74);
+            move(0.2, -0.5, -0.5);
+            roller.setPower(255);  // Full power forward
+
+            move(0.63, 0.5, 0.5);
+
+
+            sleep(700);
+
+
+            roller.setPower(0);  // Full power forward
+            tilt.setPosition(-0.6);
+            sleep(1000);
+            roller.setPower(-255);  // Full power forward
+            sleep(200);
+            roller.setPower(0);
+
+
+            move(1.7, 0.5, -0.5);
+            strafe(0.3, -0.5, 0.5, 0.5, -0.5);
+            move(0.8, -0.5, -0.5);
+
+
+            if (tilt.getPosition() <= 0.4) {
+                tilt.setPosition(0.4);
+                sleep(50);
+            }
+            sleep(400);
+
+            alignmentComplete = false;
+            run_apriltag_assist = true;
+
+            while (opModeIsActive() && !alignmentComplete && run_apriltag_assist) {
+                // Get fresh AprilTag detections
+                currentDetections = aprilTag.getDetections();
+
+                // Debug output
+                telemetry.addData("Number of detections", currentDetections.size());
+
+                if (currentDetections != null && !currentDetections.isEmpty()) {
+                    boolean tagFound = false;
+
+                    for (AprilTagDetection detection : currentDetections) {
+                        if (detection != null && detection.metadata != null &&
+                                (detection.id == 16 || detection.id == 13)) {
+
+                            tagFound = true;
+                            double bearing = detection.ftcPose.bearing;
+
+                            telemetry.addData("Tag ID", detection.id);
+                            telemetry.addData("Bearing", bearing);
+
+                            // If we're close to aligned
+                            if (Math.abs(bearing) < 1.5) {
+                                stopMotors();
+                                alignmentComplete = true;
+                                break;
+                            }
+
+                            // Calculate turn power
+                            float turnPower = (float) Math.min(0.15f, Math.abs(bearing) * 0.05f);
+                            if (turnPower < 0.08f) turnPower = 0.08f;
+                            turnPower *= (bearing > 0) ? 1 : -1;
+
+                            // Apply turn power
+                            setTurnPowers(turnPower);
+                            telemetry.addData("Turn Power", turnPower);
+                        }
+                    }
+
+                    if (!tagFound) {
+                        telemetry.addLine("No target tags found");
+                        stopMotors();
+                    }
+                } else {
+                    telemetry.addLine("No detections");
+                    stopMotors();
+                }
+
+                telemetryAprilTag();
+                telemetry.update();
+
+                // Small delay to prevent CPU overload
+                sleep(10);
+            }
+
+            // Stop all motors after alignment
+            stopMotors();
+
+            if (alignmentComplete) {
+                telemetry.addLine("Alignment 2 Complete!");
+            } else {
+                telemetry.addLine("Alignment Failed or Interrupted");
+            }
+            telemetry.update();
+
+
+
+
+            elevation.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+            elevation.setTargetPosition(-5500);
             elevation.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-            elevation.setPower(0.3);
+            elevation.setPower(-1);
+            while (true){ // wait until we hit position, then do a motor hold
+                if (elevation.getCurrentPosition() <= -5500){
+                    elevation.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+                    elevation.setPower(-0.15);
+                    dump.setPosition(0.45);
+                    break;
+                }
+            }
 
-            move(0.7, 0.5, 0.5);
-
-            sleep(500);
+            move(0.66, -0.5, -0.5);
+            elevation.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
             elevation.setPower(0);
 
+            dump.setPosition(0.3);  // -5900
+            sleep(1100);
+            dump.setPosition(0.45);
 
 
 
-            sleep(1000); // Pause to show final status
+
+            move(0.70, 0.4, 0.4);
+
+            elevation.setPower(1);
+
+
+            while (true) {
+                if (elevation.getCurrentPosition() != old_elevation) {
+                    old_elevation = elevation.getCurrentPosition();
+                }
+                else {
+                    elevation.setPower(0);
+                    elevation.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+                    break;
+                }
+                sleep(20);
+            }
+
+
+
+
+
+
+
+            sleep(10000); // Pause to show final status
         }
     }
 
@@ -259,7 +424,7 @@ public class autoUsingApriltags extends LinearOpMode {
         }
 
         stopAndResetMotors();
-        sleep(150);
+        sleep(100);
     }
 
     private void setMotorModes(DcMotor.RunMode mode) {
