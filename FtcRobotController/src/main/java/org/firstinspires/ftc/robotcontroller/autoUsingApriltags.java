@@ -134,6 +134,7 @@ public class autoUsingApriltags extends LinearOpMode {
 
             if (alignmentComplete) {
                 telemetry.addLine("Alignment Complete!");
+                alignmentComplete = false;
             } else {
                 telemetry.addLine("Alignment Failed or Interrupted");
             }
@@ -222,8 +223,6 @@ public class autoUsingApriltags extends LinearOpMode {
             }
             sleep(400);
 
-            alignmentComplete = false;
-            run_apriltag_assist = true;
 
             while (opModeIsActive() && !alignmentComplete && run_apriltag_assist) {
                 // Get fresh AprilTag detections
