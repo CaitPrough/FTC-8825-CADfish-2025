@@ -56,23 +56,36 @@ public class autoUsingApriltags extends LinearOpMode {
             setMotorConfigurations();
 
             int elevationHoldPos = elevation.getCurrentPosition();
-
-            // Ensure vision portal is streaming
-
-
+            if (tilt.getPosition() <= 0.4) {
+                tilt.setPosition(0.37);
+                sleep(50);
+            }
 
 
             // First movement sequence
-            move(0.8, 0.5, 0.5);
-            strafe(1.75, 0.5, -0.5, -0.5, 0.5);
-            move(0.65, 0.5, -0.5);
+            move(0.8, 0.8, 0.8);
+            // Ensure vision portal is streaming
+            elevation.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+            elevation.setTargetPosition(-1500);
+            elevation.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+            elevation.setPower(-1);
+
+            strafe(1.75, 0.8, -0.8, -0.8, 0.8);
+            move(0.65, 0.8, -0.8);
             if (tilt.getPosition() <= 0.4) {
                 tilt.setPosition(0.4);
                 sleep(50);
             }
-            sleep(400);
+         //   sleep(400);
+
+
+            elevation.setTargetPosition(-5500);
+            elevation.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+            elevation.setPower(-1);
+
 
             // Now start the AprilTag detection sequence
+            sleep(60);
             boolean alignmentComplete = false;
 
             while (opModeIsActive() && !alignmentComplete && run_apriltag_assist) {
@@ -145,10 +158,7 @@ public class autoUsingApriltags extends LinearOpMode {
 
 
 
-            elevation.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-            elevation.setTargetPosition(-5500);
-            elevation.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-            elevation.setPower(-1);
+
             while (true){ // wait until we hit position, then do a motor hold
                 if (elevation.getCurrentPosition() <= -5500){
                     elevation.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
@@ -158,22 +168,31 @@ public class autoUsingApriltags extends LinearOpMode {
                 }
             }
 
-            move(0.59, -0.5, -0.5);
+            move(0.59, -0.65, -0.65);
             elevation.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+
             elevation.setPower(0);
 
             dump.setPosition(0.3);  // -5900
-            sleep(1100);
+            sleep(1000);
             dump.setPosition(0.45);
+            elevation.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
+            elevation.setPower(0);
 
 
 
 
             move(0.70, 0.4, 0.4);
 
+
+            // move 2 \/
+
+
+            strafe(0.35, -0.65, 0.65, 0.65, -0.65);
+
+            elevation.setPower(0.2);
+            move(1.15, 0.65, 0.65);
             elevation.setPower(1);
-
-
             while (true) {
                 if (elevation.getCurrentPosition() != old_elevation) {
                     old_elevation = elevation.getCurrentPosition();
@@ -185,20 +204,15 @@ public class autoUsingApriltags extends LinearOpMode {
                 }
                 sleep(20);
             }
+            elevation.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
-
-
-
-
-
-            move(1.15, 0.5, 0.5);
-
-            move(1.7, -0.5, 0.5);
+            tilt.setPosition(0.45);
+            move(1.63, -0.65, 0.65);
             tilt.setPosition(0.74);
-            move(0.2, -0.5, -0.5);
+            move(0.2, -0.65, -0.65);
             roller.setPower(255);  // Full power forward
 
-            move(0.63, 0.5, 0.5);
+            move(0.63, 0.65, 0.65);
 
 
             sleep(700);
@@ -212,17 +226,24 @@ public class autoUsingApriltags extends LinearOpMode {
             roller.setPower(0);
 
 
-            move(1.7, 0.5, -0.5);
-            strafe(0.3, -0.5, 0.5, 0.5, -0.5);
-            move(0.8, -0.5, -0.5);
+            move(1.7, 0.65, -0.65);
+            tilt.setPosition(0.3);
+
+            strafe(0.3, -0.65, 0.65, 0.65, -0.65);
+
+            sleep(50);
+            elevation.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+            elevation.setTargetPosition(-5500);
+            elevation.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+            elevation.setPower(-1);
+            move(0.8, -0.65, -0.65);
 
 
-            if (tilt.getPosition() <= 0.4) {
-                tilt.setPosition(0.4);
-                sleep(50);
-            }
-            sleep(400);
 
+
+            sleep(150);
+            alignmentComplete = false;
+            run_apriltag_assist = true;
 
             while (opModeIsActive() && !alignmentComplete && run_apriltag_assist) {
                 // Get fresh AprilTag detections
@@ -291,15 +312,11 @@ public class autoUsingApriltags extends LinearOpMode {
 
 
 
-            elevation.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-            elevation.setTargetPosition(-5500);
-            elevation.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-            elevation.setPower(-1);
+
             while (true){ // wait until we hit position, then do a motor hold
                 if (elevation.getCurrentPosition() <= -5500){
                     elevation.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
                     elevation.setPower(-0.15);
-                    dump.setPosition(0.45);
                     break;
                 }
             }
@@ -316,6 +333,17 @@ public class autoUsingApriltags extends LinearOpMode {
 
 
             move(0.70, 0.4, 0.4);
+
+
+
+
+            elevation.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
+            elevation.setPower(0);
+
+            move(1.7, -0.8, 0.8);
+            strafe(1.7, -0.8, 0.8, 0.8, -0.8);
+
+
 
             elevation.setPower(1);
 
@@ -334,8 +362,7 @@ public class autoUsingApriltags extends LinearOpMode {
 
 
 
-
-
+            tilt.setPosition(-0.6);
 
 
             sleep(10000); // Pause to show final status
@@ -423,7 +450,7 @@ public class autoUsingApriltags extends LinearOpMode {
         }
 
         stopAndResetMotors();
-        sleep(100);
+        sleep(10);
     }
 
     private void setMotorModes(DcMotor.RunMode mode) {
@@ -475,7 +502,7 @@ public class autoUsingApriltags extends LinearOpMode {
         }
 
         stopAndResetMotors();
-        sleep(250);
+        sleep(10);
     }
 
     private void initAprilTag() {
