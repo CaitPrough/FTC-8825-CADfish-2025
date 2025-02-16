@@ -159,7 +159,7 @@ public class autoUsingApriltags extends LinearOpMode {
 
 
 
-            while (true){ // wait until we hit position, then do a motor hold
+            while (opModeIsActive()){ // wait until we hit position, then do a motor hold
                 if (elevation.getCurrentPosition() <= -5500){
                     elevation.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
                     elevation.setPower(-0.15);
@@ -188,12 +188,12 @@ public class autoUsingApriltags extends LinearOpMode {
             // move 2 \/
 
 
-            strafe(0.35, -0.65, 0.65, 0.65, -0.65);
+            strafe(0.365, -0.65, 0.65, 0.65, -0.65);
 
             elevation.setPower(0.6);
-            move(1.18, 0.65, 0.65);
+            move(1.20, 0.65, 0.65);
             elevation.setPower(1);
-            while (true) {
+            while (opModeIsActive()) {
                 if (elevation.getCurrentPosition() != old_elevation) {
                     old_elevation = elevation.getCurrentPosition();
                 }
@@ -226,18 +226,18 @@ public class autoUsingApriltags extends LinearOpMode {
 
 
 
-            move(1.7, 0.65, -0.65);
+            move(1.68, 0.65, -0.65);
             tilt.setPosition(0.3);
             roller.setPower(0);
 
-            strafe(0.3, -0.65, 0.65, 0.65, -0.65);
+            strafe(0.345, -0.65, 0.65, 0.65, -0.65);
 
             sleep(50);
             elevation.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
             elevation.setTargetPosition(-5500);
             elevation.setMode(DcMotor.RunMode.RUN_TO_POSITION);
             elevation.setPower(-1);
-            move(0.8, -0.65, -0.65);
+            move(0.89, -0.65, -0.65);
 
 
 
@@ -246,7 +246,7 @@ public class autoUsingApriltags extends LinearOpMode {
             alignmentComplete = false;
             run_apriltag_assist = true;
 
-            while (opModeIsActive() && !alignmentComplete && run_apriltag_assist) {
+            while (opModeIsActive() && !alignmentComplete && run_apriltag_assist) { //auto aligh 2
                 // Get fresh AprilTag detections
                 currentDetections = aprilTag.getDetections();
 
@@ -314,7 +314,7 @@ public class autoUsingApriltags extends LinearOpMode {
 
 
 
-            while (true){ // wait until we hit position, then do a motor hold
+            while (opModeIsActive()){ // wait until we hit position, then do a motor hold
                 if (elevation.getCurrentPosition() <= -5500){
                     elevation.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
                     elevation.setPower(-0.15);
@@ -322,7 +322,7 @@ public class autoUsingApriltags extends LinearOpMode {
                 }
             }
 
-            move(0.66, -0.5, -0.5);
+            move(0.71, -0.5, -0.5);
             elevation.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
             elevation.setPower(0);
 
@@ -342,11 +342,12 @@ public class autoUsingApriltags extends LinearOpMode {
             elevation.setPower(0);
 
             move(1.79, -0.8, 0.8);
-            strafe(1.33, -0.8, 0.8, 0.8, -0.8);
             move(0.4, -0.5, -0.5);
+            elevation.setPower(0.2);
+            strafe(1.40, -0.8, 0.8, 0.8, -0.8);
+
 
             tilt.setPosition(0.74);
-
 
 
 
@@ -354,7 +355,8 @@ public class autoUsingApriltags extends LinearOpMode {
             elevation.setPower(1);
 
 
-            while (true) {
+
+            while (opModeIsActive()) {
                 if (elevation.getCurrentPosition() != old_elevation) {
                     old_elevation = elevation.getCurrentPosition();
                 }
@@ -366,13 +368,15 @@ public class autoUsingApriltags extends LinearOpMode {
                 sleep(20);
             }
 
+            sleep(700);
+
 
             roller.setPower(255);  // Full power forward
 
             move(0.65, 0.65, 0.65);
 
+            sleep(300);
 
-            sleep(700);
 
 
             roller.setPower(0);  // Full power forward
@@ -392,7 +396,9 @@ public class autoUsingApriltags extends LinearOpMode {
             move(1.45, 0.8, -0.8);
             roller.setPower(0);
             tilt.setPosition(0.35);
+            move(0.35, 0.8, -0.8);
             sleep(200);
+
 
 
             elevation.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
@@ -402,7 +408,7 @@ public class autoUsingApriltags extends LinearOpMode {
 
 
 
-            move(0.7, -0.8, -0.8);
+            move(0.74, -0.8, -0.8);
 
 
 
@@ -476,7 +482,7 @@ public class autoUsingApriltags extends LinearOpMode {
             telemetry.update();
 
 
-            while (true){ // wait until we hit position, then do a motor hold
+            while (opModeIsActive()){ // wait until we hit position, then do a motor hold
                 if (elevation.getCurrentPosition() <= -5500){
                     elevation.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
                     elevation.setPower(-0.15);
